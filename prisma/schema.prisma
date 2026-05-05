@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CapDiTich {
+  CAP_TINH
+  CAP_QUOC_GIA
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  email     String?  @map("email")
+  fullName  String   @map("full_name")
+  avatarUrl String?  @map("avatar_url")
+  role      Role     @default(USER)
+  trangThai Boolean  @default(true) @map("trang_thai")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  danhGias  DanhGia[]
+  yeuThichs YeuThich[]
+  baiViets  BaiViet[]
+
+  @@map("profiles")
+}
+
+model DanhMuc {
+  id         Int     @id @default(autoincrement())
+  tenDanhMuc String  @map("ten_danh_muc")
+  moTa       String? @map("mo_ta")
+  thuTu      Int     @default(0) @map("thu_tu")
+  trangThai  Boolean @default(true) @map("trang_thai")
+
+  diTichs DiTich[]
+
+  @@map("danh_muc")
+}
+
+model DiTich {
+  id             Int       @id @default(autoincrement())
+  slug           String?   @unique @map("slug")
+  tenDiTich      String    @map("ten_di_tich")
+  moTa           String    @map("mo_ta")
+  moTaChiTiet    String?   @map("mo_ta_chi_tiet")
+  diaChi         String    @map("dia_chi")
+  toaDoLat       Float     @map("toa_do_lat")
+  toaDoLng       Float     @map("toa_do_lng")
+  danhMucId      Int       @map("danh_muc_id")
+  capDiTich      CapDiTich @map("cap_di_tich")
+  hinhAnhDaiDien String?   @map("hinh_anh_dai_dien")
+  luotXem        Int       @default(0) @map("luot_xem")
+  trangThai      Boolean   @default(true) @map("trang_thai")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  danhMuc   DanhMuc          @relation(fields: [danhMucId], references: [id])
+  hinhAnhs  HinhAnh[]
+  videos    Video[]
+  audios    Audio[]
+  danhGias  DanhGia[]
+  yeuThichs YeuThich[]
+  thongKes  ThongKeTruyCap[]
+
+  @@map("di_tich")
+}
+
+model HinhAnh {
+  id       Int     @id @default(autoincrement())
+  diTichId Int     @map("di_tich_id")
+  url      String
+  moTa     String? @map("mo_ta")
+  thuTu    Int     @default(0) @map("thu_tu")
+
+  diTich DiTich @relation(fields: [diTichId], references: [id], onDelete: Cascade)
+
+  @@map("hinh_anh")
+}
+
+model Video {
+  id       Int     @id @default(autoincrement())
+  diTichId Int     @map("di_tich_id")
+  url      String
+  moTa     String? @map("mo_ta")
+  thuTu    Int     @default(0) @map("thu_tu")
+
+  diTich DiTich @relation(fields: [diTichId], references: [id], onDelete: Cascade)
+
+  @@map("video")
+}
+
+model Audio {
+  id       Int     @id @default(autoincrement())
+  diTichId Int     @map("di_tich_id")
+  url      String
+  moTa     String? @map("mo_ta")
+  thuTu    Int     @default(0) @map("thu_tu")
+
+  diTich DiTich @relation(fields: [diTichId], references: [id], onDelete: Cascade)
+
+  @@map("audio")
+}
+
+model DanhGia {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  diTichId  Int      @map("di_tich_id")
+  diemSo    Int      @map("diem_so")
+  binhLuan  String?  @map("binh_luan")
+  trangThai Boolean  @default(true) @map("trang_thai")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   Profile @relation(fields: [userId], references: [id])
+  diTich DiTich  @relation(fields: [diTichId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, diTichId])
+  @@map("danh_gia")
+}
+
+model YeuThich {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  diTichId  Int      @map("di_tich_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   Profile @relation(fields: [userId], references: [id])
+  diTich DiTich  @relation(fields: [diTichId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, diTichId])
+  @@map("yeu_thich")
+}
+
+model BaiViet {
+  id        Int      @id @default(autoincrement())
+  slug      String?  @unique @map("slug")
+  tieuDe    String   @map("tieu_de")
+  noiDung   String   @map("noi_dung")
+  hinhAnh   String?  @map("hinh_anh")
+  tacGiaId  String   @map("tac_gia_id")
+  trangThai Boolean  @default(true) @map("trang_thai")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tacGia Profile @relation(fields: [tacGiaId], references: [id])
+
+  @@map("bai_viet")
+}
+
+model ThongKeTruyCap {
+  id          Int      @id @default(autoincrement())
+  diTichId    Int?     @map("di_tich_id")
+  ngay        DateTime @map("ngay")
+  luotXem     Int      @default(0) @map("luot_xem")
+  luotTimKiem Int      @default(0) @map("luot_tim_kiem")
+
+  diTich DiTich? @relation(fields: [diTichId], references: [id])
+
+  @@map("thong_ke_truy_cap")
+}
