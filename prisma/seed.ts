@@ -104,11 +104,21 @@ async function main() {
     }),
     prisma.danhMuc.upsert({
       where: { id: 8 },
-      update: {},
+      update: { thuTu: 9 },
       create: {
         id: 8,
         tenDanhMuc: "Di tích lịch sử",
         moTa: "Di tích lịch sử, cách mạng",
+        thuTu: 9,
+      },
+    }),
+    prisma.danhMuc.upsert({
+      where: { id: 9 },
+      update: {},
+      create: {
+        id: 9,
+        tenDanhMuc: "Đền",
+        moTa: "Đền thờ, nơi thờ tự",
         thuTu: 8,
       },
     }),

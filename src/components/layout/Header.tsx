@@ -103,7 +103,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 md:gap-2">
             <LuLandmark className="h-5 w-5 md:h-6 md:w-6 text-teal-600" />
-            <span className="font-bold text-base sm:text-xl md:text-2xl text-teal-800 font-heading whitespace-nowrap">
+            <span className="font-bold text-base sm:text-xl md:text-2xl text-teal-800 font-heading whitespace-nowrap uppercase">
               Di Tích Khánh Hòa
             </span>
           </Link>
@@ -115,7 +115,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium tracking-tight font-heading transition-colors ${
+                  className={`text-sm font-medium font-heading uppercase transition-colors ${
                     active
                       ? "text-teal-600 border-b-2 border-teal-600 font-semibold pb-0.5"
                       : "text-slate-600 hover:text-teal-500"
@@ -183,7 +183,7 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl text-sm font-heading font-medium transition-colors ${
+                  className={`px-3 py-2.5 rounded-xl text-sm font-heading font-medium uppercase transition-colors ${
                     pathname === link.href
                       ? "bg-teal-50 text-teal-700 font-semibold"
                       : "text-slate-600 hover:bg-slate-50"

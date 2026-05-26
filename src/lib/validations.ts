@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const passwordSchema = z
+  .string()
+  .min(8, "Mật khẩu tối thiểu 8 ký tự")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/,
+    "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt"
+  );
+
 export const diTichSchema = z.object({
   tenDiTich: z
     .string()
@@ -10,7 +18,10 @@ export const diTichSchema = z.object({
   diaChi: z.string().min(1, "Địa chỉ không được để trống"),
   toaDoLat: z.number().min(-90).max(90),
   toaDoLng: z.number().min(-180).max(180),
-  danhMucId: z.number().int().positive("Vui lòng chọn danh mục"),
+  danhMucId: z
+    .number({ error: "Vui lòng chọn danh mục" })
+    .int("Vui lòng chọn danh mục")
+    .positive("Vui lòng chọn danh mục"),
   capDiTich: z.enum(["CAP_TINH", "CAP_QUOC_GIA"]),
   hinhAnhDaiDien: z.string().optional(),
 });
@@ -39,15 +50,29 @@ export const baiVietSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Email không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+  email: z.string().trim().email("Email không hợp lệ"),
+  password: passwordSchema,
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("Email không hợp lệ"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
 
 export const registerSchema = z
   .object({
     fullName: z.string().min(1, "Họ tên không được để trống"),
-    email: z.string().email("Email không hợp lệ"),
-    password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+    email: z.string().trim().email("Email không hợp lệ"),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -60,4 +85,6 @@ export type DanhMucInput = z.infer<typeof danhMucSchema>;
 export type DanhGiaInput = z.infer<typeof danhGiaSchema>;
 export type BaiVietInput = z.infer<typeof baiVietSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

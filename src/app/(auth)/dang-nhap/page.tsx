@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 export default function DangNhapPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -36,19 +37,32 @@ export default function DangNhapPage() {
     setLoading(true);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email.trim(),
+        password: data.password,
+      });
 
-    if (error) {
-      toast.error("Email hoặc mật khẩu không đúng");
+      if (error) {
+        if (!navigator.onLine) {
+          toast.error("Không có kết nối mạng. Vui lòng kiểm tra Internet.");
+        } else if (error.status && error.status >= 500) {
+          toast.error("Hệ thống đăng nhập đang gặp lỗi. Vui lòng thử lại sau.");
+        } else {
+          toast.error("Email chưa đăng ký hoặc mật khẩu không đúng.");
+        }
+
+        setLoading(false);
+        return;
+      }
+    } catch {
+      toast.error("Không thể kết nối đến hệ thống đăng nhập. Vui lòng thử lại.");
       setLoading(false);
       return;
     }
 
     toast.success("Đăng nhập thành công");
-    window.location.href = "/";
+    router.push("/");
   }
 
   return (
@@ -74,13 +88,37 @@ export default function DangNhapPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mật khẩu</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••"
-              {...register("password")}
-            />
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="password">Mật khẩu</Label>
+              <Link
+                href="/quen-mat-khau"
+                className="text-sm font-medium text-teal-600 hover:underline"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Khanhhoa@123"
+                className="pr-11"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-teal-700"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-sm text-destructive">
                 {errors.password.message}

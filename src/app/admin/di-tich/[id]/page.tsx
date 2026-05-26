@@ -78,6 +78,7 @@ export default function EditDiTichPage() {
 
     if (res.ok) {
       toast.success("Cập nhật thành công");
+      router.push("/admin/di-tich");
     } else {
       toast.error("Lỗi khi cập nhật");
     }
