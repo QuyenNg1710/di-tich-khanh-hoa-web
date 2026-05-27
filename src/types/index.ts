@@ -9,6 +9,7 @@ import type {
   BaiViet,
   Profile,
   ThongKeTruyCap,
+  DonViQuanLy,
 } from "@prisma/client";
 
 export type {
@@ -22,6 +23,7 @@ export type {
   BaiViet,
   Profile,
   ThongKeTruyCap,
+  DonViQuanLy,
 };
 
 export interface DiTichWithRelations extends DiTich {
@@ -36,6 +38,7 @@ export interface DiTichForMap {
   id: number;
   tenDiTich: string;
   diaChi: string;
+  donViQuanLy: string | null;
   toaDoLat: number;
   toaDoLng: number;
   capDiTich: string;
@@ -55,6 +58,8 @@ export interface DiTichFilter {
   search?: string;
   danhMucId?: number;
   capDiTich?: "CAP_TINH" | "CAP_QUOC_GIA";
+  donViQuanLy?: string;
+  donViQuanLyId?: number;
   pageIndex?: number;
   pageSize?: number;
   sortBy?: string;

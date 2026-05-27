@@ -16,6 +16,50 @@ import MediaManager from "@/components/admin/MediaManager";
 
 interface DanhMuc { id: number; tenDanhMuc: string; }
 interface MediaItem { id: number; url: string; moTa: string | null; thuTu: number; }
+interface FetchedDiTich {
+  tenDiTich: string;
+  moTa: string;
+  moTaChiTiet: string | null;
+  diaChi: string;
+  donViQuanLy: string | null;
+  donViQuanLyId: number | null;
+  donViQuanLyInfo?: { tenDonVi: string } | null;
+  toaDoLat: number;
+  toaDoLng: number;
+  danhMucId: number;
+  capDiTich: "CAP_TINH" | "CAP_QUOC_GIA";
+  hinhAnhDaiDien: string | null;
+  hinhAnhs?: MediaItem[];
+  videos?: MediaItem[];
+  audios?: MediaItem[];
+}
+
+function getReturnUrl() {
+  if (typeof window === "undefined") return "/admin/di-tich";
+
+  const params = new URLSearchParams(window.location.search);
+  const returnUrl = params.get("returnUrl");
+  if (returnUrl?.startsWith("/admin/di-tich")) {
+    return returnUrl;
+  }
+
+  const returnPage = Number(params.get("returnPage")) || 1;
+  const returnSearch = params.get("returnSearch") || "";
+  const listParams = new URLSearchParams();
+
+  if (returnPage > 1) listParams.set("page", String(returnPage));
+  if (returnSearch) listParams.set("search", returnSearch);
+
+  const query = listParams.toString();
+  if (query) return `/admin/di-tich?${query}`;
+
+  const storedUrl = window.sessionStorage.getItem("adminDiTichReturnUrl");
+  if (storedUrl?.startsWith("/admin/di-tich")) {
+    return storedUrl;
+  }
+
+  return "/admin/di-tich";
+}
 
 export default function EditDiTichPage() {
   const { id } = useParams();
@@ -33,9 +77,7 @@ export default function EditDiTichPage() {
     resolver: zodResolver(diTichSchema),
   });
 
-  const fetchDiTich = useCallback(async () => {
-    const res = await fetch(`/api/ditich/${id}`);
-    const dt = await res.json();
+  const applyDiTichData = useCallback((dt: FetchedDiTich) => {
     setSelectedDanhMuc(String(dt.danhMucId));
     setSelectedCap(dt.capDiTich);
     setHinhAnhs(dt.hinhAnhs || []);
@@ -46,23 +88,32 @@ export default function EditDiTichPage() {
       moTa: dt.moTa,
       moTaChiTiet: dt.moTaChiTiet || "",
       diaChi: dt.diaChi,
+      donViQuanLy: dt.donViQuanLy || dt.donViQuanLyInfo?.tenDonVi || "",
+      donViQuanLyId: null,
       toaDoLat: dt.toaDoLat,
       toaDoLng: dt.toaDoLng,
       danhMucId: dt.danhMucId,
       capDiTich: dt.capDiTich,
       hinhAnhDaiDien: dt.hinhAnhDaiDien || "",
     });
-  }, [id, reset]);
+  }, [reset]);
+
+  const fetchDiTich = useCallback(async () => {
+    const res = await fetch(`/api/ditich/${id}`);
+    const dt = await res.json();
+    applyDiTichData(dt);
+  }, [applyDiTichData, id]);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/danhmuc").then((r) => r.json()),
-      fetchDiTich(),
-    ]).then(([dms]) => {
+      fetch(`/api/ditich/${id}`).then((r) => r.json()),
+    ]).then(([dms, dt]) => {
       if (Array.isArray(dms)) setDanhMucs(dms);
+      applyDiTichData(dt);
       setFetching(false);
     });
-  }, [fetchDiTich]);
+  }, [applyDiTichData, id]);
 
   function handleRefreshMedia() {
     fetchDiTich();
@@ -70,15 +121,16 @@ export default function EditDiTichPage() {
 
   async function onSubmit(data: DiTichInput) {
     setLoading(true);
+    const returnUrl = getReturnUrl();
     const res = await fetch(`/api/ditich/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, donViQuanLyId: null }),
     });
 
     if (res.ok) {
       toast.success("Cập nhật thành công");
-      router.push("/admin/di-tich");
+      window.location.href = returnUrl;
     } else {
       toast.error("Lỗi khi cập nhật");
     }
@@ -123,6 +175,12 @@ export default function EditDiTichPage() {
               <Input {...register("diaChi")} />
             </div>
 
+            <div className="space-y-2">
+              <Label>Đơn vị quản lý</Label>
+              <Input {...register("donViQuanLy")} placeholder="Nhập đơn vị quản lý" />
+              {errors.donViQuanLy && <p className="text-sm text-destructive">{errors.donViQuanLy.message}</p>}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Vĩ độ</Label>
@@ -152,7 +210,7 @@ export default function EditDiTichPage() {
         </Card>
 
         <div className="flex gap-3">
-          <button type="button" onClick={() => router.push("/admin/di-tich")} className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold font-heading border border-slate-200 hover:bg-slate-50 transition-all">
+          <button type="button" onClick={() => router.push(getReturnUrl())} className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold font-heading border border-slate-200 hover:bg-slate-50 transition-all">
             Huỷ
           </button>
           <button type="submit" disabled={loading} className="inline-flex items-center bg-[#0D9488] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-sm font-semibold font-heading transition-all disabled:opacity-50">

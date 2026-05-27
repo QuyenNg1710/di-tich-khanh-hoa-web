@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -29,10 +30,8 @@ export default function ReviewSection({ diTichId }: Props) {
   const [hoverStar, setHoverStar] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchReviews();
-  }, [diTichId]);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   async function fetchReviews() {
     const res = await fetch(`/api/ditich/${diTichId}/danhgia?limit=20`);
@@ -41,6 +40,23 @@ export default function ReviewSection({ diTichId }: Props) {
     setTotalCount(data.totalCount || 0);
     setDiemTrungBinh(data.diemTrungBinh || 0);
   }
+
+  useEffect(() => {
+    fetch(`/api/ditich/${diTichId}/danhgia?limit=20`)
+      .then((res) => res.json())
+      .then((data) => {
+        setReviews(data.items || []);
+        setTotalCount(data.totalCount || 0);
+        setDiemTrungBinh(data.diemTrungBinh || 0);
+      });
+  }, [diTichId]);
+
+  useEffect(() => {
+    fetch("/api/auth/profile")
+      .then((res) => setIsLoggedIn(res.ok))
+      .catch(() => setIsLoggedIn(false))
+      .finally(() => setCheckingAuth(false));
+  }, []);
 
   async function handleSubmit() {
     if (!selectedStar) {
@@ -60,7 +76,7 @@ export default function ReviewSection({ diTichId }: Props) {
     } else if (res.status === 409) {
       toast.error("Bạn đã đánh giá di tích này rồi");
     } else if (res.ok) {
-      toast.success("Đánh giá thành công!");
+      toast.success("Đã gửi đánh giá, vui lòng chờ quản trị viên phê duyệt");
       setSelectedStar(0);
       setComment("");
       fetchReviews();
@@ -78,31 +94,48 @@ export default function ReviewSection({ diTichId }: Props) {
       </div>
 
       {/* Form */}
-      <div className="p-4 border rounded-lg space-y-3">
-        <p className="text-sm font-medium">Viết đánh giá của bạn</p>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              className="text-2xl transition-transform hover:scale-110"
-              onMouseEnter={() => setHoverStar(star)}
-              onMouseLeave={() => setHoverStar(0)}
-              onClick={() => setSelectedStar(star)}
-            >
-              {star <= (hoverStar || selectedStar) ? "⭐" : "☆"}
-            </button>
-          ))}
+      {checkingAuth ? (
+        <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+          Đang kiểm tra trạng thái đăng nhập...
         </div>
-        <Textarea
-          placeholder="Nhập bình luận (tuỳ chọn)..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={3}
-        />
-        <Button onClick={handleSubmit} disabled={submitting} size="sm">
-          {submitting ? "Đang gửi..." : "Gửi đánh giá"}
-        </Button>
-      </div>
+      ) : isLoggedIn ? (
+        <div className="p-4 border rounded-lg space-y-3">
+          <p className="text-sm font-medium">Viết đánh giá của bạn</p>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className="text-2xl transition-transform hover:scale-110"
+                onMouseEnter={() => setHoverStar(star)}
+                onMouseLeave={() => setHoverStar(0)}
+                onClick={() => setSelectedStar(star)}
+              >
+                {star <= (hoverStar || selectedStar) ? "⭐" : "☆"}
+              </button>
+            ))}
+          </div>
+          <Textarea
+            placeholder="Nhập bình luận (tuỳ chọn)..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+          />
+          <Button onClick={handleSubmit} disabled={submitting} size="sm">
+            {submitting ? "Đang gửi..." : "Gửi đánh giá"}
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed p-5 text-center">
+          <p className="text-sm text-muted-foreground">Vui lòng đăng nhập để viết đánh giá và bình luận.</p>
+          <Link
+            href="/dang-nhap"
+            className="mt-3 inline-flex h-7 items-center justify-center rounded-lg bg-primary px-2.5 text-[0.8rem] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Đăng nhập để đánh giá
+          </Link>
+        </div>
+      )}
 
       <Separator />
 

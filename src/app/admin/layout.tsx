@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { LuLandmark, LuLayoutDashboard, LuUsers, LuTag, LuLogOut, LuMenu, LuX, LuNewspaper } from "react-icons/lu";
-import { HiHome } from "react-icons/hi";
+import { LuLandmark, LuLayoutDashboard, LuUsers, LuTag, LuLogOut, LuMenu, LuX, LuNewspaper, LuMessageSquareText } from "react-icons/lu";
+import { HiHome, HiOfficeBuilding } from "react-icons/hi";
 
 const MENU = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LuLayoutDashboard },
+  { href: "/admin/don-vi-quan-ly", label: "Đơn vị quản lý", icon: HiOfficeBuilding },
   { href: "/admin/di-tich", label: "Di tích", icon: LuLandmark },
   { href: "/admin/tin-tuc", label: "Bài viết", icon: LuNewspaper },
+  { href: "/admin/danh-gia", label: "Đánh giá", icon: LuMessageSquareText },
   { href: "/admin/tai-khoan", label: "Tài khoản", icon: LuUsers },
   { href: "/admin/danh-muc", label: "Danh mục", icon: LuTag },
 ];
@@ -19,6 +21,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAdmin() {
+      try {
+        const res = await fetch("/api/auth/profile");
+
+        if (!res.ok) {
+          router.replace("/dang-nhap");
+          return;
+        }
+
+        const profile = await res.json();
+
+        if (profile.role !== "ADMIN") {
+          router.replace("/");
+          return;
+        }
+
+        if (active) {
+          setAuthorized(true);
+        }
+      } catch {
+        router.replace("/dang-nhap");
+      } finally {
+        if (active) {
+          setCheckingAuth(false);
+        }
+      }
+    }
+
+    checkAdmin();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -84,6 +126,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </>
   );
+
+  if (checkingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="rounded-xl border border-slate-200 bg-white px-6 py-4 text-sm font-medium text-slate-600 shadow-sm">
+          Đang kiểm tra quyền quản trị...
+        </div>
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen">

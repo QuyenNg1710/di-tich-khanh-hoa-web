@@ -24,6 +24,18 @@ interface DanhMucItem {
   tenDanhMuc: string;
 }
 
+const khuVucs = [
+  "Nha Trang",
+  "Cam Ranh",
+  "Ninh Hòa",
+  "Diên Khánh",
+  "Cam Lâm",
+  "Khánh Vĩnh",
+  "Khánh Sơn",
+  "Vạn Ninh",
+  "Trường Sa",
+];
+
 export default function TimKiemPageWrapper() {
   return (
     <Suspense
@@ -44,11 +56,11 @@ function TimKiemPage() {
 
   const query = searchParams.get("q") || "";
   const paramDanhMuc = searchParams.get("danhMucId") || "all";
-  const paramCap = searchParams.get("capDiTich") || "all";
+  const paramKhuVuc = searchParams.get("khuVuc") || "all";
 
   const [searchText, setSearchText] = useState(query);
   const [danhMucId, setDanhMucId] = useState(paramDanhMuc);
-  const [capDiTich, setCapDiTich] = useState(paramCap);
+  const [khuVuc, setKhuVuc] = useState(paramKhuVuc);
   const [danhMucs, setDanhMucs] = useState<DanhMucItem[]>([]);
 
   const [results, setResults] = useState<DiTichItem[]>([]);
@@ -63,11 +75,10 @@ function TimKiemPage() {
   }, []);
 
   const fetchResults = useCallback(() => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (searchText) params.set("search", searchText);
     if (danhMucId !== "all") params.set("danhMucId", danhMucId);
-    if (capDiTich !== "all") params.set("capDiTich", capDiTich);
+    if (khuVuc !== "all") params.set("khuVuc", khuVuc);
     params.set("pageSize", "30");
 
     fetch(`/api/ditich?${params}`)
@@ -77,18 +88,18 @@ function TimKiemPage() {
         setTotalCount(data.totalCount || 0);
       })
       .finally(() => setLoading(false));
-  }, [searchText, danhMucId, capDiTich]);
+  }, [searchText, danhMucId, khuVuc]);
 
   useEffect(() => {
     fetchResults();
   }, [fetchResults]);
 
   const updateUrl = useCallback(
-    (newQ: string, newDM: string, newCap: string) => {
+    (newQ: string, newDM: string, newKhuVuc: string) => {
       const params = new URLSearchParams();
       if (newQ) params.set("q", newQ);
       if (newDM !== "all") params.set("danhMucId", newDM);
-      if (newCap !== "all") params.set("capDiTich", newCap);
+      if (newKhuVuc !== "all") params.set("khuVuc", newKhuVuc);
       router.replace(`/tim-kiem?${params.toString()}`);
     },
     [router]
@@ -96,29 +107,33 @@ function TimKiemPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateUrl(searchText, danhMucId, capDiTich);
+    setLoading(true);
+    updateUrl(searchText, danhMucId, khuVuc);
   };
 
   const handleDanhMucChange = (value: string | null) => {
     const v = value || "all";
+    setLoading(true);
     setDanhMucId(v);
-    updateUrl(searchText, v, capDiTich);
+    updateUrl(searchText, v, khuVuc);
   };
 
-  const handleCapChange = (value: string | null) => {
+  const handleKhuVucChange = (value: string | null) => {
     const v = value || "all";
-    setCapDiTich(v);
+    setLoading(true);
+    setKhuVuc(v);
     updateUrl(searchText, danhMucId, v);
   };
 
   const handleClearFilters = () => {
+    setLoading(true);
     setSearchText("");
     setDanhMucId("all");
-    setCapDiTich("all");
+    setKhuVuc("all");
     router.replace("/tim-kiem");
   };
 
-  const hasFilters = searchText || danhMucId !== "all" || capDiTich !== "all";
+  const hasFilters = searchText || danhMucId !== "all" || khuVuc !== "all";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -160,17 +175,20 @@ function TimKiemPage() {
             </Select>
 
             <Select
-              value={capDiTich}
-              onValueChange={handleCapChange}
-              items={{ all: "Tất cả cấp", CAP_TINH: "Cấp tỉnh", CAP_QUOC_GIA: "Cấp quốc gia" }}
+              value={khuVuc}
+              onValueChange={handleKhuVucChange}
+              items={Object.fromEntries([["all", "Tất cả khu vực"], ...khuVucs.map((item) => [item, item])])}
             >
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Cấp di tích" />
+                <SelectValue placeholder="Khu vực" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả cấp</SelectItem>
-                <SelectItem value="CAP_TINH">Cấp tỉnh</SelectItem>
-                <SelectItem value="CAP_QUOC_GIA">Cấp quốc gia</SelectItem>
+                <SelectItem value="all">Tất cả khu vực</SelectItem>
+                {khuVucs.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

@@ -17,7 +17,13 @@ export async function PUT(
   const { id } = await params;
   const danhGia = await prisma.danhGia.findUnique({ where: { id: Number(id) } });
 
-  if (!danhGia || danhGia.userId !== user.id) {
+  let isAdmin = false;
+  try {
+    await requireAdmin();
+    isAdmin = true;
+  } catch { /* not admin */ }
+
+  if (!danhGia || (!isAdmin && danhGia.userId !== user.id)) {
     return NextResponse.json({ error: "Không có quyền" }, { status: 403 });
   }
 
@@ -30,7 +36,10 @@ export async function PUT(
 
   const updated = await prisma.danhGia.update({
     where: { id: Number(id) },
-    data: parsed.data,
+    data: {
+      ...parsed.data,
+      ...(isAdmin && typeof body.trangThai === "boolean" ? { trangThai: body.trangThai } : {}),
+    },
     include: { user: { select: { id: true, fullName: true, avatarUrl: true } } },
   });
 

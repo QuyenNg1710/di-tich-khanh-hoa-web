@@ -45,6 +45,25 @@ model DanhMuc {
   @@map("danh_muc")
 }
 
+model DonViQuanLy {
+  id         Int      @id @default(autoincrement())
+  tenDonVi   String   @map("ten_don_vi")
+  diaChi     String?  @map("dia_chi")
+  dienThoai  String?  @map("dien_thoai")
+  email      String?  @map("email")
+  website    String?  @map("website")
+  hinhAnh    String?  @map("hinh_anh")
+  toaDoLat   Float?   @map("toa_do_lat")
+  toaDoLng   Float?   @map("toa_do_lng")
+  trangThai  Boolean  @default(true) @map("trang_thai")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  diTichs DiTich[]
+
+  @@map("don_vi_quan_ly")
+}
+
 model DiTich {
   id             Int       @id @default(autoincrement())
   slug           String?   @unique @map("slug")
@@ -52,6 +71,8 @@ model DiTich {
   moTa           String    @map("mo_ta")
   moTaChiTiet    String?   @map("mo_ta_chi_tiet")
   diaChi         String    @map("dia_chi")
+  donViQuanLy    String?   @map("don_vi_quan_ly")
+  donViQuanLyId  Int?      @map("don_vi_quan_ly_id")
   toaDoLat       Float     @map("toa_do_lat")
   toaDoLng       Float     @map("toa_do_lng")
   danhMucId      Int       @map("danh_muc_id")
@@ -63,6 +84,7 @@ model DiTich {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   danhMuc   DanhMuc          @relation(fields: [danhMucId], references: [id])
+  donViQuanLyInfo DonViQuanLy? @relation(fields: [donViQuanLyId], references: [id])
   hinhAnhs  HinhAnh[]
   videos    Video[]
   audios    Audio[]

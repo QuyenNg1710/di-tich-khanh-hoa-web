@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import ImageCarousel from "@/components/ditich/ImageCarousel";
 import FavoriteButton from "@/components/ditich/FavoriteButton";
 import ReviewSection from "@/components/ditich/ReviewSection";
-import { HiEye, HiLocationMarker } from "react-icons/hi";
+import { HiEye, HiLocationMarker, HiOfficeBuilding } from "react-icons/hi";
 import MiniMapWrapper from "@/components/map/MiniMapWrapper";
 import DirectionsMapWrapper from "@/components/map/DirectionsMapWrapper";
 
@@ -24,6 +24,7 @@ export default async function DiTichDetailPage({
     where: isNumeric ? { id: Number(slug) } : { slug },
     include: {
       danhMuc: true,
+      donViQuanLyInfo: true,
       hinhAnhs: { orderBy: { thuTu: "asc" } },
       videos: { orderBy: { thuTu: "asc" } },
       audios: { orderBy: { thuTu: "asc" } },
@@ -77,6 +78,12 @@ export default async function DiTichDetailPage({
               <span className="text-muted-foreground">📂</span>
               {diTich.danhMuc.tenDanhMuc}
             </p>
+            {(diTich.donViQuanLyInfo?.tenDonVi || diTich.donViQuanLy) && (
+              <p className="flex items-center gap-2">
+                <HiOfficeBuilding className="text-muted-foreground shrink-0" />
+                {diTich.donViQuanLyInfo?.tenDonVi || diTich.donViQuanLy}
+              </p>
+            )}
             <p className="flex items-center gap-2">
               <HiEye className="text-muted-foreground" />
               {diTich.luotXem.toLocaleString("vi-VN")} lượt xem

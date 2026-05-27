@@ -11,24 +11,34 @@ interface Stats {
   tongLuotXem: number;
 }
 
+interface RecentReview {
+  id: number;
+  diemSo: number;
+  user?: { fullName: string | null } | null;
+  diTich?: { tenDiTich: string } | null;
+}
+
 const COLORS = ["#0D9488", "#F59E0B", "#10B981", "#F97316", "#EAB308", "#06B6D4", "#EC4899", "#8B5CF6"];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [topDiTich, setTopDiTich] = useState<{ tenDiTich: string; luotXem: number }[]>([]);
   const [chartDanhMuc, setChartDanhMuc] = useState<{ name: string; value: number }[]>([]);
-  const [recentReviews, setRecentReviews] = useState<any[]>([]);
+  const [chartDonVi, setChartDonVi] = useState<{ name: string; value: number }[]>([]);
+  const [recentReviews, setRecentReviews] = useState<RecentReview[]>([]);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/thongke?type=tong-quan").then((r) => r.json()),
       fetch("/api/thongke?type=top-di-tich").then((r) => r.json()),
       fetch("/api/thongke?type=di-tich-theo-danh-muc").then((r) => r.json()),
+      fetch("/api/thongke?type=di-tich-theo-don-vi").then((r) => r.json()),
       fetch("/api/thongke?type=danh-gia-gan-day").then((r) => r.json()),
-    ]).then(([s, top, dm, rv]) => {
+    ]).then(([s, top, dm, dv, rv]) => {
       setStats(s);
       setTopDiTich(top);
       setChartDanhMuc(dm);
+      setChartDonVi(dv);
       setRecentReviews(rv);
     });
   }, []);
@@ -107,12 +117,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <div className="glass-card rounded-2xl p-6">
+        <h3 className="text-base font-bold text-[#0A1628] font-heading mb-4">Theo đơn vị quản lý</h3>
+        {chartDonVi.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartDonVi} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Bar dataKey="value" fill="#F59E0B" radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-center text-slate-400 py-8">Chưa có dữ liệu</p>
+        )}
+      </div>
+
       {/* Recent reviews */}
       <div className="glass-card rounded-2xl p-6">
         <h3 className="text-base font-bold text-[#0A1628] font-heading mb-4">Đánh giá gần đây</h3>
         {recentReviews.length > 0 ? (
           <div className="space-y-3">
-            {recentReviews.slice(0, 5).map((r: any) => (
+            {recentReviews.slice(0, 5).map((r) => (
               <div key={r.id} className="flex items-center gap-3 text-sm py-2 border-b border-slate-100 last:border-0">
                 <span className="shrink-0">{"⭐".repeat(r.diemSo)}</span>
                 <span className="font-medium text-slate-700">{r.user?.fullName}</span>

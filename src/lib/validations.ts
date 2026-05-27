@@ -16,6 +16,8 @@ export const diTichSchema = z.object({
   moTa: z.string().min(1, "Mô tả không được để trống"),
   moTaChiTiet: z.string().optional(),
   diaChi: z.string().min(1, "Địa chỉ không được để trống"),
+  donViQuanLy: z.string().max(200, "Đơn vị quản lý tối đa 200 ký tự").optional(),
+  donViQuanLyId: z.number().int().positive().nullable().optional(),
   toaDoLat: z.number().min(-90).max(90),
   toaDoLng: z.number().min(-180).max(180),
   danhMucId: z
@@ -24,6 +26,22 @@ export const diTichSchema = z.object({
     .positive("Vui lòng chọn danh mục"),
   capDiTich: z.enum(["CAP_TINH", "CAP_QUOC_GIA"]),
   hinhAnhDaiDien: z.string().optional(),
+  trangThai: z.boolean().optional(),
+});
+
+export const donViQuanLySchema = z.object({
+  tenDonVi: z
+    .string()
+    .min(1, "Tên đơn vị không được để trống")
+    .max(200, "Tên đơn vị tối đa 200 ký tự"),
+  diaChi: z.string().optional(),
+  dienThoai: z.string().optional(),
+  email: z.string().email("Email không hợp lệ").optional().or(z.literal("")),
+  website: z.string().url("Website không hợp lệ").optional().or(z.literal("")),
+  hinhAnh: z.string().optional(),
+  toaDoLat: z.number().min(-90).max(90).nullable().optional(),
+  toaDoLng: z.number().min(-180).max(180).nullable().optional(),
+  trangThai: z.boolean().optional(),
 });
 
 export const danhMucSchema = z.object({
@@ -81,6 +99,7 @@ export const registerSchema = z
   });
 
 export type DiTichInput = z.infer<typeof diTichSchema>;
+export type DonViQuanLyInput = z.infer<typeof donViQuanLySchema>;
 export type DanhMucInput = z.infer<typeof danhMucSchema>;
 export type DanhGiaInput = z.infer<typeof danhGiaSchema>;
 export type BaiVietInput = z.infer<typeof baiVietSchema>;

@@ -67,6 +67,7 @@ export async function POST(
       userId: user.id,
       diTichId: Number(id),
       ...parsed.data,
+      trangThai: false,
     },
     include: { user: { select: { id: true, fullName: true, avatarUrl: true } } },
   });

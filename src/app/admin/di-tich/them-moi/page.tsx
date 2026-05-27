@@ -24,7 +24,7 @@ export default function ThemDiTichPage() {
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<DiTichInput>({
     resolver: zodResolver(diTichSchema),
-    defaultValues: { capDiTich: "CAP_TINH", toaDoLat: 12.2388, toaDoLng: 109.1967 },
+    defaultValues: { capDiTich: "CAP_TINH", donViQuanLyId: null, toaDoLat: 12.2388, toaDoLng: 109.1967 },
   });
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function ThemDiTichPage() {
     const res = await fetch("/api/ditich", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, donViQuanLyId: null }),
     });
 
     if (res.ok) {
@@ -113,6 +113,12 @@ export default function ThemDiTichPage() {
               {errors.diaChi && <p className="text-sm text-destructive">{errors.diaChi.message}</p>}
             </div>
 
+            <div className="space-y-2">
+              <Label>Đơn vị quản lý</Label>
+              <Input {...register("donViQuanLy")} placeholder="Nhập đơn vị quản lý" />
+              {errors.donViQuanLy && <p className="text-sm text-destructive">{errors.donViQuanLy.message}</p>}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Vĩ độ (Lat)</Label>
@@ -132,7 +138,7 @@ export default function ThemDiTichPage() {
 
             <div className="space-y-2">
               <Label>Mô tả chi tiết</Label>
-              <Textarea {...register("moTaChiTiet")} rows={6} placeholder="Mô tả chi tiết (hỗ trợ HTML)" />
+              <Textarea {...register("moTaChiTiet")} rows={6} placeholder="Mô tả chi tiết" />
             </div>
 
             <div className="space-y-2">

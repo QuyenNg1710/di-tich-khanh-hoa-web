@@ -1,0 +1,13 @@
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of D:\DO_AN\di-tich-khanh-hoa-do-an-master\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * D:\DO_AN\di-tich-khanh-hoa-do-an-master\di-tich-khanh-hoa\package-lock.json
+
+[browser] ⨯ unhandledRejection: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+    at fetchData (webpack-internal:///(app-pages-browser)/./src/app/admin/di-tich/page.tsx:52:32)
+⨯ Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}

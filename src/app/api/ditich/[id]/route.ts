@@ -17,6 +17,7 @@ export async function GET(
     where: whereById(id),
     include: {
       danhMuc: true,
+      donViQuanLyInfo: true,
       hinhAnhs: { orderBy: { thuTu: "asc" } },
       videos: { orderBy: { thuTu: "asc" } },
       audios: { orderBy: { thuTu: "asc" } },
@@ -71,7 +72,7 @@ export async function PUT(
   const diTich = await prisma.diTich.update({
     where: whereById(id),
     data: parsed.data,
-    include: { danhMuc: true },
+    include: { danhMuc: true, donViQuanLyInfo: true },
   });
 
   return NextResponse.json(diTich);

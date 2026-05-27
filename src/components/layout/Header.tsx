@@ -13,13 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import { HiMenu, HiX } from "react-icons/hi";
-import { LuLandmark } from "react-icons/lu";
+import { LuChevronDown, LuLandmark } from "react-icons/lu";
 
 const NAV_LINKS = [
-  { href: "/", label: "Trang chủ" },
+  {
+    href: "/",
+    label: "Trang chủ",
+    children: [
+      { href: "/bo-may-to-chuc", label: "Bộ máy tổ chức" },
+      { href: "/chuc-nang-nhiem-vu", label: "Chức năng nhiệm vụ" },
+      { href: "/cai-cach-hanh-chinh", label: "Cải cách hành chính" },
+    ],
+  },
   { href: "/di-san-van-hoa", label: "Di sản văn hoá" },
-  { href: "/ban-do", label: "Bản đồ" },
+  { href: "/ban-do", label: "Bản đồ di tích" },
   { href: "/tin-tuc", label: "Tin tức" },
+  { href: "/lien-he", label: "Liên hệ" },
 ];
 
 interface UserInfo {
@@ -98,28 +107,63 @@ export default function Header() {
   }
 
   return (
-    <header className="fixed top-4 left-0 right-0 mx-auto w-[92%] max-w-7xl z-50">
-      <nav className="glass-nav rounded-2xl border border-white/20 px-5 md:px-8 py-3 shadow-ambient-teal">
-        <div className="flex items-center justify-between">
+    <header className="fixed left-0 right-0 top-0 z-50">
+      <nav className="glass-nav border-b border-white/30 shadow-ambient-teal">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:px-8">
           <Link href="/" className="flex items-center gap-1.5 md:gap-2">
             <LuLandmark className="h-5 w-5 md:h-6 md:w-6 text-teal-600" />
-            <span className="font-bold text-base sm:text-xl md:text-2xl text-teal-800 font-heading whitespace-nowrap uppercase">
-              Di Tích Khánh Hòa
+            <span className="flex flex-col leading-none">
+              <span className="font-bold text-base sm:text-xl md:text-2xl text-teal-800 font-heading whitespace-nowrap uppercase">
+                Di Tích Khánh Hòa
+              </span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-slate-500 sm:text-[10px] md:text-xs">
+                Trung tâm bảo tồn di sản văn hoá
+              </span>
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-5 lg:gap-7">
             {NAV_LINKS.map((link) => {
-              const active = pathname === link.href;
+              const active = pathname === link.href || link.children?.some((item) => item.href === pathname);
+              const linkClassName = `text-sm font-medium font-heading uppercase transition-colors ${
+                active
+                  ? "text-teal-600 border-b-2 border-teal-600 font-semibold pb-0.5"
+                  : "text-slate-600 hover:text-teal-500"
+              }`;
+
+              if (link.children) {
+                return (
+                  <div key={link.href} className="group relative">
+                    <Link href={link.href} className={`${linkClassName} inline-flex items-center gap-1.5`}>
+                      {link.label}
+                      <LuChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
+                    </Link>
+
+                    <div className="invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-5 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                      <div className="relative rounded-xl border border-slate-100 bg-white py-2 shadow-xl">
+                        <div className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-l border-t border-slate-100 bg-white" />
+                        {link.children.map((child, index) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`block px-7 py-4 text-base font-medium text-slate-600 transition-colors hover:bg-teal-50 hover:text-teal-700 ${
+                              index > 0 ? "border-t border-slate-200" : ""
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium font-heading uppercase transition-colors ${
-                    active
-                      ? "text-teal-600 border-b-2 border-teal-600 font-semibold pb-0.5"
-                      : "text-slate-600 hover:text-teal-500"
-                  }`}
+                  className={linkClassName}
                 >
                   {link.label}
                 </Link>
@@ -176,22 +220,47 @@ export default function Header() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
-            <div className="flex flex-col gap-3">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl text-sm font-heading font-medium uppercase transition-colors ${
-                    pathname === link.href
-                      ? "bg-teal-50 text-teal-700 font-semibold"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+          <div className="absolute left-0 right-0 top-full border-b border-white/20 bg-white/95 p-6 shadow-lg backdrop-blur-xl md:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3">
+              {NAV_LINKS.map((link) => {
+                const active = pathname === link.href || link.children?.some((item) => item.href === pathname);
+
+                return (
+                  <div key={link.href}>
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-heading font-medium uppercase transition-colors ${
+                        active
+                          ? "bg-teal-50 text-teal-700 font-semibold"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {link.label}
+                      {link.children && <LuChevronDown className="h-3.5 w-3.5" />}
+                    </Link>
+
+                    {link.children && (
+                      <div className="mt-1 space-y-1 pl-4">
+                        {link.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={`block rounded-lg px-3 py-2 text-sm font-heading transition-colors ${
+                              pathname === child.href
+                                ? "bg-teal-50 text-teal-700 font-semibold"
+                                : "text-slate-500 hover:bg-slate-50 hover:text-teal-600"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <div className="border-t border-slate-100 pt-3 mt-1">
                 {user ? (
                   <>

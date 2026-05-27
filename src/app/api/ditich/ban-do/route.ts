@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
       slug: true,
       tenDiTich: true,
       diaChi: true,
+      donViQuanLy: true,
+      donViQuanLyInfo: { select: { tenDonVi: true } },
       toaDoLat: true,
       toaDoLng: true,
       capDiTich: true,

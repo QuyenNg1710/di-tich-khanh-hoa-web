@@ -56,6 +56,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    case "di-tich-theo-don-vi": {
+      const items = await prisma.diTich.findMany({
+        where: { trangThai: true },
+        select: {
+          donViQuanLy: true,
+          donViQuanLyInfo: { select: { tenDonVi: true } },
+        },
+      });
+      const counts = items.reduce<Record<string, number>>((acc, item) => {
+        const name = item.donViQuanLyInfo?.tenDonVi?.trim() || item.donViQuanLy?.trim() || "Chưa cập nhật";
+        acc[name] = (acc[name] || 0) + 1;
+        return acc;
+      }, {});
+
+      return NextResponse.json(
+        Object.entries(counts)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 10)
+      );
+    }
+
     case "danh-gia-gan-day": {
       const items = await prisma.danhGia.findMany({
         where: { trangThai: true },
