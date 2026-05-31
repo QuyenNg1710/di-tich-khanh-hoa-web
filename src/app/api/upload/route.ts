@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+const IMGBB_API_KEY = process.env.IMGBB_API_KEY || "a1f4e6aeff5104c8d75e8edbba11d7c3";
 const ALLOWED_BUCKETS = ["images", "videos", "audio"];
 const MAX_SIZES: Record<string, number> = {
   images: 5 * 1024 * 1024,
@@ -14,6 +15,18 @@ interface FlatStorageFile {
   name: string;
   url: string;
   metadata: { size?: number; mimetype?: string } | null;
+}
+
+interface ImgBbResponse {
+  data?: {
+    url?: string;
+    display_url?: string;
+    delete_url?: string;
+  };
+  error?: {
+    message?: string;
+  };
+  success?: boolean;
 }
 
 function createStorageAdminClient() {
@@ -30,6 +43,40 @@ function createStorageAdminClient() {
       autoRefreshToken: false,
     },
   });
+}
+
+async function uploadImageToImgBb(file: File, prefix: string) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const cleanName = file.name
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+  const nameParts = [prefix, `${Date.now()}-${cleanName || "image"}`].filter(Boolean);
+  formData.append("name", nameParts.join("-"));
+
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = (await response.json()) as ImgBbResponse;
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.error?.message || "Khong upload duoc anh len imgbb");
+  }
+
+  const url = data.data?.display_url || data.data?.url;
+  if (!url) {
+    throw new Error("ImgBB khong tra ve link anh");
+  }
+
+  return {
+    url,
+    deleteUrl: data.data?.delete_url,
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -63,6 +110,28 @@ export async function POST(request: NextRequest) {
       { error: `File vượt quá ${maxMB}MB` },
       { status: 400 }
     );
+  }
+
+  if (bucket === "images") {
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Chi chap nhan file hinh anh" }, { status: 400 });
+    }
+
+    try {
+      const uploadedImage = await uploadImageToImgBb(file, prefix);
+      return NextResponse.json(
+        {
+          url: uploadedImage.url,
+          fileName: uploadedImage.url,
+          deleteUrl: uploadedImage.deleteUrl,
+          provider: "imgbb",
+        },
+        { status: 201 }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Khong upload duoc anh len imgbb";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
   }
 
   const supabase = createStorageAdminClient();

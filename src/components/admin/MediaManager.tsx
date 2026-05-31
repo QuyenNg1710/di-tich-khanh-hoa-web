@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LuImage, LuMusic, LuUpload, LuVideo, LuX } from "react-icons/lu";
+import { LuImage, LuMusic, LuVideo, LuX } from "react-icons/lu";
 import SupabaseMediaPicker from "./SupabaseMediaPicker";
 
 interface MediaItem {
@@ -170,18 +170,22 @@ export default function MediaManager({ diTichId, hinhAnhs, videos, audios, onRef
             className="hidden"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs text-slate-400">hoac</span>
-          <div className="flex-1 h-px bg-slate-200" />
-        </div>
-        <SupabaseMediaPicker
-          bucket={BUCKETS[type]}
-          accept={type}
-          onSelect={(url) => handlePickFromLibrary(url, type)}
-        >
-          Chon {label} tu thu vien da upload
-        </SupabaseMediaPicker>
+        {type !== "image" && (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-slate-200" />
+              <span className="text-xs text-slate-400">hoac</span>
+              <div className="flex-1 h-px bg-slate-200" />
+            </div>
+            <SupabaseMediaPicker
+              bucket={BUCKETS[type]}
+              accept={type}
+              onSelect={(url) => handlePickFromLibrary(url, type)}
+            >
+              Chon {label} tu thu vien da upload
+            </SupabaseMediaPicker>
+          </>
+        )}
       </div>
     );
   }
