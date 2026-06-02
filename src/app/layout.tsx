@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   title: "Di Tích Khánh Hòa - Quản lí và quảng bá di tích tỉnh Khánh Hòa",
   description:
     "Website quản lí và quảng bá các di tích cấp tỉnh và cấp quốc gia trên địa bàn tỉnh Khánh Hòa",
+  icons: {
+    icon: "/chatbot.jpg",
+  },
 };
 
 export default function RootLayout({
