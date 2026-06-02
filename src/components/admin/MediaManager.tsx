@@ -510,7 +510,7 @@ export default function MediaManager({ diTichId, hinhAnhs, videos, audios, descr
             Lưu văn bản đọc giọng Tiếng Việt
           </div>
           <p className="text-xs leading-5 text-slate-500">
-            Nội dung này sẽ hiển thị bằng nút loa ở trang chi tiết. Khi người dùng nhấn nghe, trình duyệt sẽ đọc trực tiếp bằng giọng Tiếng Việt và không cần lưu file audio.
+            Nội dung này sẽ hiển thị bằng nút loa ở trang chi tiết. Khi người dùng nhấn nghe, hệ thống sẽ tạo file giọng đọc tiếng Việt tự động và phát trực tiếp.
           </p>
           <Textarea
             value={ttsText}
