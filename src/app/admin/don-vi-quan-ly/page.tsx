@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 import { HiLocationMarker, HiMail, HiPencil, HiPhone, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
 
@@ -21,9 +22,12 @@ interface DonViQuanLyItem {
   _count?: { diTichs: number };
 }
 
+const PAGE_SIZE = 10;
+
 export default function DonViQuanLyPage() {
   const [items, setItems] = useState<DonViQuanLyItem[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +42,7 @@ export default function DonViQuanLyPage() {
     const res = await fetch(`/api/don-vi-quan-ly?${params}`);
     const data = await res.json();
     setItems(Array.isArray(data) ? data : []);
+    setPage(1);
     setLoading(false);
   }
 
@@ -52,6 +57,9 @@ export default function DonViQuanLyPage() {
     }
     setDeleteId(null);
   }
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const paginatedItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -73,7 +81,10 @@ export default function DonViQuanLyPage() {
           placeholder="Tìm tên đơn vị, địa chỉ..."
           className="pl-9 bg-[#e0e3e5] border-0 rounded-2xl focus:ring-[#00685f]/20"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -93,7 +104,7 @@ export default function DonViQuanLyPage() {
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Đang tải...</TableCell></TableRow>
             ) : items.length === 0 ? (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Không có dữ liệu</TableCell></TableRow>
-            ) : items.map((item) => (
+            ) : paginatedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -145,6 +156,13 @@ export default function DonViQuanLyPage() {
           </TableBody>
         </Table>
       </div>
+
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={items.length}
+        onPageChange={setPage}
+      />
 
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>

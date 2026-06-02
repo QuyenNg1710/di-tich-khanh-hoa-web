@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
+import { FloatingChatbot } from "@/components/chat/FloatingChatbot";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#f7f9fb]" suppressHydrationWarning>
         <TooltipProvider>
           {children}
+          <FloatingChatbot />
           <Toaster richColors position="top-right" />
         </TooltipProvider>
       </body>

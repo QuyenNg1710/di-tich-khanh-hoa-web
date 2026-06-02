@@ -6,11 +6,45 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import ImageCarousel from "@/components/ditich/ImageCarousel";
+import DescriptionSpeaker from "@/components/ditich/DescriptionSpeaker";
 import FavoriteButton from "@/components/ditich/FavoriteButton";
 import ReviewSection from "@/components/ditich/ReviewSection";
 import { HiEye, HiLocationMarker, HiOfficeBuilding } from "react-icons/hi";
 import MiniMapWrapper from "@/components/map/MiniMapWrapper";
 import DirectionsMapWrapper from "@/components/map/DirectionsMapWrapper";
+
+function getVideoEmbedUrl(url: string) {
+  try {
+    if (url.startsWith("watch?")) {
+      const params = new URLSearchParams(url.replace(/^watch\?/, ""));
+      const videoId = params.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.hostname.includes("youtube.com")) {
+      const videoId = parsedUrl.searchParams.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    if (parsedUrl.hostname.includes("youtu.be")) {
+      const videoId = parsedUrl.pathname.replace("/", "");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    if (parsedUrl.hostname.includes("drive.google.com")) {
+      const match = parsedUrl.pathname.match(/\/file\/d\/([^/]+)/);
+      return match?.[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+    }
+  } catch {}
+
+  return url;
+}
+
+function isEmbedVideoUrl(url: string) {
+  return /^watch\?/i.test(url) || /youtube\.com|youtu\.be|drive\.google\.com/i.test(url);
+}
 
 export default async function DiTichDetailPage({
   params,
@@ -43,6 +77,9 @@ export default async function DiTichDetailPage({
     _avg: { diemSo: true },
     _count: true,
   });
+  const textToSpeechAudio = diTich.audios.find((audio) => audio.url.startsWith("tts://"));
+  const audioFiles = diTich.audios.filter((audio) => !audio.url.startsWith("tts://"));
+  const descriptionSpeechText = textToSpeechAudio?.moTa || diTich.moTa;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -92,7 +129,10 @@ export default async function DiTichDetailPage({
 
           <FavoriteButton diTichId={diTich.id} />
 
-          <p className="text-muted-foreground">{diTich.moTa}</p>
+          <div className="flex items-start gap-2">
+            <p className="text-muted-foreground">{diTich.moTa}</p>
+            <DescriptionSpeaker text={descriptionSpeechText} />
+          </div>
         </div>
       </div>
 
@@ -103,7 +143,7 @@ export default async function DiTichDetailPage({
         <TabsList>
           <TabsTrigger value="mota">Mô tả</TabsTrigger>
           {diTich.videos.length > 0 && <TabsTrigger value="video">Video</TabsTrigger>}
-          {diTich.audios.length > 0 && <TabsTrigger value="audio">Audio</TabsTrigger>}
+          {audioFiles.length > 0 && <TabsTrigger value="audio">Audio</TabsTrigger>}
           <TabsTrigger value="bando">Bản đồ</TabsTrigger>
           <TabsTrigger value="chiduong">Chỉ đường</TabsTrigger>
         </TabsList>
@@ -111,9 +151,18 @@ export default async function DiTichDetailPage({
         <TabsContent value="mota">
           <div className="prose max-w-none">
             {diTich.moTaChiTiet ? (
-              <div dangerouslySetInnerHTML={{ __html: diTich.moTaChiTiet }} />
+              <div className="space-y-3">
+                <div className="not-prose flex items-center gap-2">
+                  <span className="text-sm font-medium text-slate-600">Nghe mô tả</span>
+                  <DescriptionSpeaker text={descriptionSpeechText} />
+                </div>
+                <div dangerouslySetInnerHTML={{ __html: diTich.moTaChiTiet }} />
+              </div>
             ) : (
-              <p className="text-muted-foreground">{diTich.moTa}</p>
+              <div className="flex items-start gap-2">
+                <p className="text-muted-foreground">{diTich.moTa}</p>
+                <DescriptionSpeaker text={descriptionSpeechText} />
+              </div>
             )}
           </div>
         </TabsContent>
@@ -123,9 +172,19 @@ export default async function DiTichDetailPage({
             <div className="grid gap-4">
               {diTich.videos.map((v) => (
                 <div key={v.id}>
-                  <video controls className="w-full max-w-2xl rounded-lg">
-                    <source src={v.url} />
-                  </video>
+                  {isEmbedVideoUrl(v.url) ? (
+                    <iframe
+                      src={getVideoEmbedUrl(v.url)}
+                      title={v.moTa || "Video di tích"}
+                      className="aspect-video w-full max-w-3xl rounded-lg border"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video controls className="w-full max-w-2xl rounded-lg">
+                      <source src={v.url} />
+                    </video>
+                  )}
                   {v.moTa && <p className="text-sm text-muted-foreground mt-2">{v.moTa}</p>}
                 </div>
               ))}
@@ -133,10 +192,10 @@ export default async function DiTichDetailPage({
           </TabsContent>
         )}
 
-        {diTich.audios.length > 0 && (
+        {audioFiles.length > 0 && (
           <TabsContent value="audio">
             <div className="space-y-4">
-              {diTich.audios.map((a) => (
+              {audioFiles.map((a) => (
                 <div key={a.id} className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                   <span className="text-2xl">🎵</span>
                   <div className="flex-1">

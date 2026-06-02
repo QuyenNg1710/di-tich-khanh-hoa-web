@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { HiPlus } from "react-icons/hi";
+import { HiPencil, HiPlus } from "react-icons/hi";
 
 interface User {
   id: string;
@@ -25,12 +26,23 @@ interface User {
   _count: { danhGias: number; yeuThichs: number };
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminTaiKhoanPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", fullName: "", role: "USER" });
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    avatarUrl: "",
+    role: "USER",
+    trangThai: true,
+  });
 
   useEffect(() => { fetchData(); }, []);
 
@@ -39,6 +51,7 @@ export default function AdminTaiKhoanPage() {
     const res = await fetch("/api/users");
     const data = await res.json();
     setUsers(Array.isArray(data) ? data : []);
+    setPage(1);
     setLoading(false);
   }
 
@@ -86,6 +99,60 @@ export default function AdminTaiKhoanPage() {
     fetchData();
   }
 
+  function openEdit(user: User) {
+    setEditingUser(user);
+    setEditForm({
+      fullName: user.fullName,
+      avatarUrl: user.avatarUrl || "",
+      role: user.role,
+      trangThai: user.trangThai,
+    });
+  }
+
+  async function handleUpdate() {
+    if (!editingUser) return;
+
+    if (!editForm.fullName.trim()) {
+      toast.error("Vui lòng nhập họ tên");
+      return;
+    }
+
+    setUpdating(true);
+    const res = await fetch(`/api/users/${editingUser.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editForm),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      toast.success("Đã cập nhật tài khoản");
+      setEditingUser(null);
+      fetchData();
+    } else {
+      toast.error(data.error || "Không thể cập nhật tài khoản");
+    }
+
+    setUpdating(false);
+  }
+
+  async function deleteUser(id: string, fullName: string) {
+    if (!window.confirm(`Bạn có chắc muốn xoá tài khoản "${fullName}" không?`)) return;
+
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success("Đã xoá tài khoản");
+      fetchData();
+    } else {
+      toast.error(data.error || "Không thể xoá tài khoản");
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const paginatedUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -121,12 +188,15 @@ export default function AdminTaiKhoanPage() {
               <TableRow><TableCell colSpan={9} className="text-center py-8 text-slate-400">Đang tải...</TableCell></TableRow>
             ) : users.length === 0 ? (
               <TableRow><TableCell colSpan={9} className="text-center py-8 text-slate-400">Chưa có tài khoản</TableCell></TableRow>
-            ) : users.map((u, i) => (
+            ) : paginatedUsers.map((u, i) => (
               <TableRow key={u.id}>
-                <TableCell>{i + 1}</TableCell>
+                <TableCell>{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
+                      {u.avatarUrl ? (
+                        <AvatarImage src={u.avatarUrl} alt={u.fullName} />
+                      ) : null}
                       <AvatarFallback className="bg-teal-50 text-teal-700 text-xs font-heading">{u.fullName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{u.fullName}</span>
@@ -146,11 +216,17 @@ export default function AdminTaiKhoanPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" className="text-xs" onClick={() => toggleRole(u.id, u.role)}>
+                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(u)}>
+                      <HiPencil className="h-4 w-4" />
+                      <span className="hidden">
                       {u.role === "ADMIN" ? "→ User" : "→ Admin"}
+                      </span>
                     </Button>
                     <Button variant={u.trangThai ? "destructive" : "default"} size="sm" className="text-xs" onClick={() => toggleStatus(u.id, u.trangThai)}>
                       {u.trangThai ? "Khoá" : "Mở"}
+                    </Button>
+                    <Button variant="destructive" size="sm" className="text-xs" onClick={() => deleteUser(u.id, u.fullName)}>
+                      Xoá
                     </Button>
                   </div>
                 </TableCell>
@@ -159,6 +235,98 @@ export default function AdminTaiKhoanPage() {
           </TableBody>
         </Table>
       </div>
+
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={users.length}
+        onPageChange={setPage}
+      />
+
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-heading">Chỉnh sửa tài khoản</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <Avatar className="h-14 w-14">
+                {editForm.avatarUrl ? (
+                  <AvatarImage src={editForm.avatarUrl} alt={editForm.fullName} />
+                ) : null}
+                <AvatarFallback className="bg-teal-50 text-teal-700 font-heading">
+                  {editForm.fullName.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900">
+                  {editForm.fullName || "Người dùng"}
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  {editingUser?.email || "Chưa có email"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Họ và tên *</Label>
+              <Input
+                value={editForm.fullName}
+                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Link avatar</Label>
+              <Input
+                placeholder="https://..."
+                value={editForm.avatarUrl}
+                onChange={(e) => setEditForm({ ...editForm, avatarUrl: e.target.value })}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Vai trò</Label>
+                <Select
+                  value={editForm.role}
+                  onValueChange={(v) => v && setEditForm({ ...editForm, role: v })}
+                  items={{ USER: "User", ADMIN: "Admin" }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USER">User</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Trạng thái</Label>
+                <Select
+                  value={editForm.trangThai ? "true" : "false"}
+                  onValueChange={(v) => setEditForm({ ...editForm, trangThai: v === "true" })}
+                  items={{ true: "Hoạt động", false: "Khóa" }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Hoạt động</SelectItem>
+                    <SelectItem value="false">Khóa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Hủy
+            </Button>
+            <Button onClick={handleUpdate} disabled={updating}>
+              {updating ? "Đang lưu..." : "Lưu thay đổi"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create User Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 import { HiPencil, HiTrash, HiPlus } from "react-icons/hi";
 
@@ -23,8 +24,11 @@ interface DanhMuc {
   _count: { diTichs: number };
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminDanhMucPage() {
   const [items, setItems] = useState<DanhMuc[]>([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -41,6 +45,7 @@ export default function AdminDanhMucPage() {
     setLoading(true);
     const res = await fetch("/api/danhmuc");
     setItems(await res.json());
+    setPage(1);
     setLoading(false);
   }
 
@@ -84,6 +89,9 @@ export default function AdminDanhMucPage() {
     setDeleteId(null);
     fetchData();
   }
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const paginatedItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -155,7 +163,7 @@ export default function AdminDanhMucPage() {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400">Đang tải...</TableCell></TableRow>
-            ) : items.map((dm) => (
+            ) : paginatedItems.map((dm) => (
               <TableRow key={dm.id}>
                 <TableCell>{dm.thuTu}</TableCell>
                 <TableCell className="font-medium">{dm.tenDanhMuc}</TableCell>
@@ -185,6 +193,13 @@ export default function AdminDanhMucPage() {
       </div>
 
       {/* Dialog xoá */}
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={items.length}
+        onPageChange={setPage}
+      />
+
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>

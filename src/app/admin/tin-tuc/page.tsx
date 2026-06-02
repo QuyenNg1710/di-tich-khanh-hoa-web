@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -26,9 +27,12 @@ interface BaiViet {
   tacGia: { fullName: string };
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminTinTucPage() {
   const [items, setItems] = useState<BaiViet[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -48,6 +52,7 @@ export default function AdminTinTucPage() {
     const data = await res.json();
     setItems(data.items || []);
     setTotalCount(data.totalCount || 0);
+    setPage(1);
     setLoading(false);
   }
 
@@ -99,6 +104,8 @@ export default function AdminTinTucPage() {
   const filtered = search
     ? items.filter((bv) => bv.tieuDe.toLowerCase().includes(search.toLowerCase()))
     : items;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginatedItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -123,7 +130,10 @@ export default function AdminTinTucPage() {
           placeholder="Tìm theo tiêu đề..."
           className="pl-9 bg-[#e0e3e5] border-0 rounded-2xl focus:ring-[#00685f]/20"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -186,9 +196,9 @@ export default function AdminTinTucPage() {
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400">Đang tải...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400">Chưa có bài viết</TableCell></TableRow>
-            ) : filtered.map((bv, i) => (
+            ) : paginatedItems.map((bv, i) => (
               <TableRow key={bv.id}>
-                <TableCell>{i + 1}</TableCell>
+                <TableCell>{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
                 <TableCell className="font-medium max-w-[300px] truncate">{bv.tieuDe}</TableCell>
                 <TableCell>{bv.tacGia.fullName}</TableCell>
                 <TableCell>{format(new Date(bv.createdAt), "dd/MM/yyyy", { locale: vi })}</TableCell>
@@ -209,12 +219,14 @@ export default function AdminTinTucPage() {
         </Table>
       </div>
 
-      {/* Tổng — giống di tích */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Tổng: {totalCount}</span>
-      </div>
-
       {/* Dialog xoá — giống di tích */}
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={filtered.length}
+        onPageChange={setPage}
+      />
+
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>

@@ -9,11 +9,13 @@ interface Props {
 }
 
 export default function ImageCarousel({ images, fallback }: Props) {
-  const allImages = images.length > 0
-    ? images
-    : fallback
-      ? [{ id: 0, url: fallback, moTa: null }]
-      : [];
+  const allImages = [
+    ...(fallback ? [{ id: 0, url: fallback, moTa: "Ảnh đại diện" }] : []),
+    ...images,
+  ].filter(
+    (image, index, currentImages) =>
+      currentImages.findIndex((currentImage) => currentImage.url === image.url) === index
+  );
 
   if (allImages.length === 0) {
     return (

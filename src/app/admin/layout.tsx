@@ -76,8 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <LuLandmark className="h-5 w-5" />
         </div>
         <div className="text-lg font-bold tracking-tight font-heading">
-          <span className="text-white">Di Tích </span>
-          <span className="text-teal-400">KH</span>
+          <span className="text-white">Khánh Hoà</span>
         </div>
       </div>
 

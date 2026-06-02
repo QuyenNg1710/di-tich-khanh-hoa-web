@@ -48,6 +48,11 @@ export default function DangNhapPage() {
           toast.error("Không có kết nối mạng. Vui lòng kiểm tra Internet.");
         } else if (error.status && error.status >= 500) {
           toast.error("Hệ thống đăng nhập đang gặp lỗi. Vui lòng thử lại sau.");
+        } else if (
+          error.message.toLowerCase().includes("email not confirmed") ||
+          error.message.toLowerCase().includes("not confirmed")
+        ) {
+          toast.error("Tài khoản chưa xác nhận email. Vui lòng kiểm tra hộp thư để xác nhận trước khi đăng nhập.");
         } else {
           toast.error("Email chưa đăng ký hoặc mật khẩu không đúng.");
         }

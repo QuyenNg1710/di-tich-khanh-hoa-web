@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -19,33 +20,49 @@ interface Review {
   diTich: { id: number; slug: string | null; tenDiTich: string };
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminDanhGiaPage() {
   const [items, setItems] = useState<Review[]>([]);
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState("all");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch(`/api/danhgia?status=${status}&pageSize=50`)
+    setLoading(true);
+    fetch(`/api/danhgia?status=${status}&pageIndex=${page}&pageSize=${PAGE_SIZE}`)
       .then((res) => res.json())
       .then((data) => {
+        const nextTotalPages = Math.max(1, data.totalPages || 1);
         setItems(data.items || []);
         setTotalCount(data.totalCount || 0);
+        setTotalPages(nextTotalPages);
+        if (page > nextTotalPages) {
+          setPage(nextTotalPages);
+        }
       })
       .finally(() => setLoading(false));
-  }, [status]);
+  }, [status, page]);
 
   function handleStatusChange(value: string) {
     setLoading(true);
     setStatus(value);
+    setPage(1);
   }
 
-  async function fetchData(currentStatus = status) {
+  async function fetchData(currentStatus = status, currentPage = page) {
     setLoading(true);
-    const res = await fetch(`/api/danhgia?status=${currentStatus}&pageSize=50`);
+    const res = await fetch(`/api/danhgia?status=${currentStatus}&pageIndex=${currentPage}&pageSize=${PAGE_SIZE}`);
     const data = await res.json();
+    const nextTotalPages = Math.max(1, data.totalPages || 1);
     setItems(data.items || []);
     setTotalCount(data.totalCount || 0);
+    setTotalPages(nextTotalPages);
+    if (currentPage > nextTotalPages) {
+      setPage(nextTotalPages);
+    }
     setLoading(false);
   }
 
@@ -158,6 +175,13 @@ export default function AdminDanhGiaPage() {
           <div className="p-10 text-center text-slate-500">Không có đánh giá nào.</div>
         )}
       </div>
+
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

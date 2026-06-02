@@ -142,7 +142,7 @@ function TimKiemPage() {
 
         {/* Search & Filters */}
         <div className="space-y-4">
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex max-w-3xl gap-2">
             <div className="relative flex-1">
               <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input

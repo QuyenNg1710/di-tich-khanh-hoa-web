@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import ImageUpload from "@/components/admin/ImageUpload";
 import MediaManager from "@/components/admin/MediaManager";
+import { LuUpload } from "react-icons/lu";
 
 interface DanhMuc { id: number; tenDanhMuc: string; }
 interface MediaItem { id: number; url: string; moTa: string | null; thuTu: number; }
@@ -72,6 +72,8 @@ export default function EditDiTichPage() {
   const [hinhAnhs, setHinhAnhs] = useState<MediaItem[]>([]);
   const [videos, setVideos] = useState<MediaItem[]>([]);
   const [audios, setAudios] = useState<MediaItem[]>([]);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm<DiTichInput>({
     resolver: zodResolver(diTichSchema),
@@ -119,6 +121,40 @@ export default function EditDiTichPage() {
     fetchDiTich();
   }
 
+  async function handleCoverUpload(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Chỉ chấp nhận file hình ảnh");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh không được vượt quá 5MB");
+      return;
+    }
+
+    setUploadingCover(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bucket", "images");
+    formData.append("prefix", String(id));
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.url) {
+      setValue("hinhAnhDaiDien", data.url);
+      toast.success("Đã tải ảnh lên ImgBB");
+    } else {
+      toast.error(data.error || "Không thể upload ảnh");
+    }
+
+    setUploadingCover(false);
+    if (coverInputRef.current) coverInputRef.current.value = "";
+  }
+
   async function onSubmit(data: DiTichInput) {
     setLoading(true);
     const returnUrl = getReturnUrl();
@@ -143,11 +179,11 @@ export default function EditDiTichPage() {
     <div className="w-full">
       <h1 className="text-3xl font-bold text-[#0A1628] font-heading mb-6">Chỉnh sửa di tích</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form id="edit-di-tich-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card className="glass-card rounded-2xl border-white/20">
           <CardHeader><CardTitle className="text-base font-heading">Thông tin cơ bản</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+          <CardContent className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2 lg:col-span-2">
               <Label>Tên di tích *</Label>
               <Input {...register("tenDiTich")} />
               {errors.tenDiTich && <p className="text-sm text-destructive">{errors.tenDiTich.message}</p>}
@@ -192,31 +228,55 @@ export default function EditDiTichPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-2">
               <Label>Mô tả *</Label>
               <Textarea {...register("moTa")} rows={3} />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-2">
               <Label>Mô tả chi tiết</Label>
               <Textarea {...register("moTaChiTiet")} rows={6} />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3 lg:col-span-2">
               <Label>Hình ảnh đại diện</Label>
-              <ImageUpload value={watch("hinhAnhDaiDien") || ""} onChange={(url) => setValue("hinhAnhDaiDien", url)} bucket="images" />
+              {watch("hinhAnhDaiDien") ? (
+                <img
+                  src={watch("hinhAnhDaiDien") || ""}
+                  alt="Ảnh đại diện"
+                  className="h-56 w-full rounded-lg border border-slate-200 object-cover"
+                />
+              ) : null}
+              <Input
+                value={watch("hinhAnhDaiDien") || ""}
+                onChange={(e) => setValue("hinhAnhDaiDien", e.target.value)}
+                placeholder="Nhập link ảnh đại diện..."
+                className="h-10"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={uploadingCover}
+              >
+                <LuUpload className="h-4 w-4" />
+                {uploadingCover ? "Đang tải..." : "Tải ảnh lên ImgBB và chuyển thành link"}
+              </Button>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleCoverUpload(file);
+                }}
+              />
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex gap-3">
-          <button type="button" onClick={() => router.push(getReturnUrl())} className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold font-heading border border-slate-200 hover:bg-slate-50 transition-all">
-            Huỷ
-          </button>
-          <button type="submit" disabled={loading} className="inline-flex items-center bg-[#0D9488] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-sm font-semibold font-heading transition-all disabled:opacity-50">
-            {loading ? "Đang lưu..." : "Cập nhật"}
-          </button>
-        </div>
       </form>
 
       {/* Media Manager - ngoài form vì upload riêng */}
@@ -228,10 +288,20 @@ export default function EditDiTichPage() {
             hinhAnhs={hinhAnhs}
             videos={videos}
             audios={audios}
+            description={watch("moTa") || ""}
             onRefresh={handleRefreshMedia}
           />
         </CardContent>
       </Card>
+
+      <div className="mt-6 flex gap-3">
+        <button type="button" onClick={() => router.push(getReturnUrl())} className="inline-flex items-center px-5 py-2.5 rounded-xl text-sm font-semibold font-heading border border-slate-200 hover:bg-slate-50 transition-all">
+          Huỷ
+        </button>
+        <button type="submit" form="edit-di-tich-form" disabled={loading} className="inline-flex items-center bg-[#0D9488] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-sm font-semibold font-heading transition-all disabled:opacity-50">
+          {loading ? "Đang lưu..." : "Cập nhật"}
+        </button>
+      </div>
     </div>
   );
 }

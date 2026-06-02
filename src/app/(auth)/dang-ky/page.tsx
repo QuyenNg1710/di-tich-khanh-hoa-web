@@ -54,9 +54,11 @@ export default function DangKyPage() {
 
     if (signUpData.session) {
       await fetch("/api/auth/profile");
+      toast.success("Đăng ký thành công!");
+    } else {
+      toast.success("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
     }
 
-    toast.success("Đăng ký thành công!");
     router.push("/dang-nhap");
   }
 

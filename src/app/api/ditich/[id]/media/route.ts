@@ -38,6 +38,15 @@ export async function POST(
       });
       break;
     case "audio":
+      if (typeof url === "string" && url.startsWith("tts://")) {
+        await prisma.audio.deleteMany({
+          where: {
+            diTichId,
+            url: { startsWith: "tts://" },
+          },
+        });
+      }
+
       result = await prisma.audio.create({
         data: { diTichId, url, moTa, thuTu: thuTu || 0 },
       });

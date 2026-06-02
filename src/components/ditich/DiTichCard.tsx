@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function DiTichCard({ diTich }: Props) {
-  const imageUrl = diTich.hinhAnhs?.[0]?.url || diTich.hinhAnhDaiDien;
+  const imageUrl = diTich.hinhAnhDaiDien || diTich.hinhAnhs?.[0]?.url;
 
   return (
     <Link href={`/di-tich/${(diTich as any).slug || diTich.id}`} prefetch={false} className="group">

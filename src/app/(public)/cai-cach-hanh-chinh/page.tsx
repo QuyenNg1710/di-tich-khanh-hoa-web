@@ -6,6 +6,54 @@ import { LuDownload, LuSearch } from "react-icons/lu";
 const documents = [
   {
     id: 1,
+    code: "3816/UBND-PVHCC",
+    title: "Về việc triển khai Kế hoạch cải cách hành chính nhà nước trọng tâm giai đoạn 2026 - 2030",
+    issuedAt: "11-03-2026",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 2,
+    code: "2821/QĐ-UBND",
+    title: "Quyết định ban hành Kế hoạch cải cách hành chính tỉnh Khánh Hòa năm 2026",
+    issuedAt: "31-12-2025",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 3,
+    code: "365/QĐ-UBND",
+    title: "Quyết định ban hành Kế hoạch cải cách thủ tục hành chính trọng tâm năm 2025 trên địa bàn tỉnh Khánh Hòa",
+    issuedAt: "21-07-2025",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 4,
+    code: "3487/QĐ-UBND",
+    title: "Quyết định về việc ban hành Kế hoạch cải cách hành chính tỉnh Khánh Hòa năm 2025",
+    issuedAt: "31-12-2024",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 5,
+    code: "14084/KH-UBND",
+    title: "Kế hoạch về việc triển khai dịch vụ công trực tuyến trên địa bàn tỉnh Khánh Hòa",
+    issuedAt: "09-12-2024",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 6,
+    code: "1718/QĐ-UBND",
+    title: "Quyết định ban hành Đề án nâng cao năng lực đội ngũ cán bộ, công chức, viên chức thực hiện công tác cải cách hành chính tỉnh Khánh Hòa giai đoạn 2023 - 2030",
+    issuedAt: "21-07-2023",
+    category: "Văn bản UBND tỉnh",
+    hasFile: true,
+  },
+  {
+    id: 7,
     code: "",
     title: "Công khai tình hình đầu tư xây dựng, mua sắm, giao, thuê tài sản công tháng 01/2022",
     issuedAt: "",
@@ -13,7 +61,7 @@ const documents = [
     hasFile: false,
   },
   {
-    id: 2,
+    id: 8,
     code: "",
     title: "Công khai tình hình đầu tư xây dựng, mua sắm, giao, thuê tài sản công tháng 05/2022",
     issuedAt: "",
@@ -21,7 +69,7 @@ const documents = [
     hasFile: false,
   },
   {
-    id: 3,
+    id: 9,
     code: "",
     title: "Công khai tình hình đầu tư xây dựng, mua sắm, giao, thuê tài sản công tháng 06/2022",
     issuedAt: "",
@@ -29,7 +77,7 @@ const documents = [
     hasFile: false,
   },
   {
-    id: 4,
+    id: 10,
     code: "",
     title: "Công khai dự toán thu chi ngân sách 6 tháng năm 2022",
     issuedAt: "",
@@ -37,7 +85,7 @@ const documents = [
     hasFile: true,
   },
   {
-    id: 5,
+    id: 11,
     code: "",
     title: "Công khai tình hình đầu tư xây dựng, mua sắm, giao, thuê tài sản công tháng 07 năm 2022",
     issuedAt: "",
@@ -45,7 +93,7 @@ const documents = [
     hasFile: false,
   },
   {
-    id: 6,
+    id: 12,
     code: "21/QĐ-BTDT",
     title: "Quyết định về việc ban hành Quy chế quản lý, sử dụng tài sản nhà nước tại Trung tâm Bảo tồn di tích tỉnh Khánh Hòa",
     issuedAt: "20-01-2021",
@@ -53,7 +101,7 @@ const documents = [
     hasFile: true,
   },
   {
-    id: 7,
+    id: 13,
     code: "20/QĐ-BTDT",
     title: "Quyết định về việc ban hành quy chế chi tiêu nội bộ của Trung tâm Bảo tồn di tích tỉnh Khánh Hòa",
     issuedAt: "20-01-2021",
@@ -61,7 +109,7 @@ const documents = [
     hasFile: true,
   },
   {
-    id: 8,
+    id: 14,
     code: "67/QĐ-BTDT",
     title: "Quyết định ban hành kế hoạch tuyên truyền cải cách hành chính năm 2021",
     issuedAt: "05-04-2021",
@@ -69,7 +117,7 @@ const documents = [
     hasFile: true,
   },
   {
-    id: 9,
+    id: 15,
     code: "82/QĐ-BTDT",
     title: "Quyết định công bố công khai quyết toán ngân sách năm 2020 và dự toán ngân sách năm 2021",
     issuedAt: "23-04-2021",
@@ -77,7 +125,7 @@ const documents = [
     hasFile: true,
   },
   {
-    id: 10,
+    id: 16,
     code: "82/QĐ-BTDT",
     title: "Quyết định ban hành kế hoạch cải cách hành chính năm 2021",
     issuedAt: "23-04-2021",

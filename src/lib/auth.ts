@@ -12,25 +12,30 @@ export async function getCurrentUser() {
     typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
       ? user.user_metadata.full_name.trim()
       : user.email || "User";
+  const avatarUrl =
+    typeof user.user_metadata?.avatar_url === "string"
+      ? user.user_metadata.avatar_url
+      : undefined;
 
-  const profile = await prisma.profile.upsert({
+  const existingProfile = await prisma.profile.findUnique({
     where: { id: user.id },
-    update: {
-      email: user.email,
-      fullName,
-      avatarUrl:
-        typeof user.user_metadata?.avatar_url === "string"
-          ? user.user_metadata.avatar_url
-          : undefined,
-    },
-    create: {
+  });
+
+  if (existingProfile) {
+    return prisma.profile.update({
+      where: { id: user.id },
+      data: {
+        email: user.email,
+      },
+    });
+  }
+
+  const profile = await prisma.profile.create({
+    data: {
       id: user.id,
       email: user.email,
       fullName,
-      avatarUrl:
-        typeof user.user_metadata?.avatar_url === "string"
-          ? user.user_metadata.avatar_url
-          : undefined,
+      avatarUrl,
     },
   });
   return profile;

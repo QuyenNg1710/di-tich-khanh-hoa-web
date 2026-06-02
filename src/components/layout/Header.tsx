@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ interface UserInfo {
   fullName: string;
   email: string;
   role: string;
+  avatarUrl?: string | null;
 }
 
 export default function Header() {
@@ -67,6 +68,7 @@ export default function Header() {
                 fullName: profile.fullName,
                 email: profile.email || authUser.email || "",
                 role: profile.role,
+                avatarUrl: profile.avatarUrl,
               });
               setLoaded(true);
               return;
@@ -82,6 +84,10 @@ export default function Header() {
         fullName: authUser.user_metadata?.full_name || authUser.email || "User",
         email: authUser.email || "",
         role: "USER",
+        avatarUrl:
+          typeof authUser.user_metadata?.avatar_url === "string"
+            ? authUser.user_metadata.avatar_url
+            : null,
       });
       setLoaded(true);
     }
@@ -97,6 +103,25 @@ export default function Header() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    function handleProfileUpdated(event: Event) {
+      const detail = (event as CustomEvent<Partial<UserInfo>>).detail;
+
+      setUser((currentUser) =>
+        currentUser
+          ? {
+              ...currentUser,
+              fullName: detail.fullName || currentUser.fullName,
+              avatarUrl: detail.avatarUrl ?? currentUser.avatarUrl,
+            }
+          : currentUser
+      );
+    }
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    return () => window.removeEventListener("profile-updated", handleProfileUpdated);
   }, []);
 
   async function handleLogout() {
@@ -178,17 +203,25 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-teal-100">
+                    {user.avatarUrl ? (
+                      <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+                    ) : null}
                     <AvatarFallback className="bg-teal-50 text-teal-700 text-sm font-heading font-semibold">
                       {user.fullName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium font-heading">{user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = "/trang-ca-nhan"}>
+                    Trang cá nhân
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = "/trang-ca-nhan?edit=1"}>
+                    Chỉnh sửa thông tin
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => window.location.href = "/yeu-thich"}>
                     Yêu thích
                   </DropdownMenuItem>
@@ -265,7 +298,12 @@ export default function Header() {
                 {user ? (
                   <>
                     <p className="px-3 py-1 text-sm font-medium">{user.fullName}</p>
-                    <p className="px-3 pb-2 text-xs text-muted-foreground">{user.email}</p>
+                    <Link href="/trang-ca-nhan" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm text-slate-600 font-heading">
+                      Trang cá nhân
+                    </Link>
+                    <Link href="/trang-ca-nhan?edit=1" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm text-slate-600 font-heading">
+                      Chỉnh sửa thông tin
+                    </Link>
                     <Link href="/yeu-thich" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm text-slate-600 font-heading">
                       Yêu thích
                     </Link>
