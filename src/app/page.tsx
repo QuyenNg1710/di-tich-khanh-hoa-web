@@ -17,20 +17,20 @@ import {
 export const dynamic = "force-dynamic";
 
 const diaDanh = [
-  { name: "Nha Trang", aliases: ["Nha Trang", "TP. Nha Trang", "Thành phố Nha Trang"] },
-  { name: "Cam Ranh", aliases: ["Cam Ranh", "TP. Cam Ranh", "Thành phố Cam Ranh"], count: 3 },
-  { name: "Ninh Hòa", aliases: ["Ninh Hòa", "TX. Ninh Hòa", "Thị xã Ninh Hòa", "Ninh Hoà"], count: 18 },
-  { name: "Diên Khánh", aliases: ["Diên Khánh", "Diên Khanh"], count: 17 },
-  { name: "Cam Lâm", aliases: ["Cam Lâm", "Cam Lam"], count: 3 },
-  { name: "Khánh Vĩnh", aliases: ["Khánh Vĩnh", "Khanh Vinh"], count: 0 },
-  { name: "Khánh Sơn", aliases: ["Khánh Sơn", "Khanh Son"], count: 0 },
-  { name: "Vạn Ninh", aliases: ["Vạn Ninh", "Van Ninh"], count: 0 },
-  { name: "Trường Sa", aliases: ["Trường Sa", "Truong Sa"], count:0 },
+  { name: "Nha Trang", aliases: ["Nha Trang", "TP. Nha Trang", "Thành phố Nha Trang"], count: 40 },
+  { name: "Cam Ranh", aliases: ["Cam Ranh", "TP. Cam Ranh", "Thành phố Cam Ranh"], count: 5 },
+  { name: "Ninh Hòa", aliases: ["Ninh Hòa", "TX. Ninh Hòa", "Thị xã Ninh Hòa", "Ninh Hoà"], count: 35 },
+  { name: "Diên Khánh", aliases: ["Diên Khánh", "Diên Khanh"], count: 19 },
+  { name: "Cam Lâm", aliases: ["Cam Lâm", "Cam Lam"], count: 5 },
+  { name: "Khánh Vĩnh", aliases: ["Khánh Vĩnh", "Khanh Vinh"], count: 2 },
+  { name: "Khánh Sơn", aliases: ["Khánh Sơn", "Khanh Son"], count: 3 },
+  { name: "Vạn Ninh", aliases: ["Vạn Ninh", "Van Ninh"], count: 6 },
+  { name: "Trường Sa", aliases: ["Trường Sa", "Truong Sa"], count:1 },
 ];
 
 const homeHeroSlides = [
   { sourceName: "Tháp Bà Ponagar", title: "Tháp Bà Ponagar Nha Trang" },
-  { sourceName: "Hòn Chồng - Hòn Vợ", title: "Danh Thắng Hòn Chồng - Hòn Đỏ" },
+  { sourceName: "Hòn Chồng - Hòn Đỏ", title: "Danh Thắng Hòn Chồng - Hòn Đỏ" },
   { sourceName: "Am Chúa", title: "Di tích lịch sử Am Chúa" },
 ];
 
