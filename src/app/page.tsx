@@ -57,7 +57,14 @@ export default async function HomePage() {
     }),
     prisma.diTich.count({ where: { trangThai: true } }),
     prisma.baiViet.count({ where: { trangThai: true } }),
-    prisma.danhMuc.findMany({ orderBy: { tenDanhMuc: "asc" } }),
+    prisma.danhMuc.findMany({
+      where: {
+        tenDanhMuc: {
+          notIn: ["Tháp", "Chùa", "Đình", "Thành cổ", "Nhà thờ", "Miếu", "Đền"],
+        },
+      },
+      orderBy: { tenDanhMuc: "asc" },
+    }),
     prisma.diTich.findMany({
       where: { trangThai: true },
       take: 80,
