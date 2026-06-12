@@ -66,25 +66,48 @@ export default function AdminDanhMucPage() {
     const url = editId ? `/api/danhmuc/${editId}` : "/api/danhmuc";
     const method = editId ? "PUT" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        const responseData = await res.json().catch(() => null);
+        const message =
+          typeof responseData?.message === "string"
+            ? responseData.message
+            : typeof responseData?.error === "string"
+              ? responseData.error
+              : "Không lưu được danh mục. Vui lòng thử lại.";
+
+        toast.error(message);
+        return;
+      }
+
       toast.success(editId ? "Cập nhật thành công" : "Thêm danh mục thành công");
       setShowForm(false);
       setEditId(null);
       reset({ tenDanhMuc: "", moTa: "", thuTu: 0 });
       fetchData();
+    } catch {
+      toast.error("Không kết nối được máy chủ. Vui lòng thử lại.");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleDelete() {
     if (!deleteId) return;
-    await fetch(`/api/danhmuc/${deleteId}`, { method: "DELETE" });
+    const res = await fetch(`/api/danhmuc/${deleteId}`, { method: "DELETE" });
+
+    if (!res.ok) {
+      const responseData = await res.json().catch(() => null);
+      toast.error(typeof responseData?.message === "string" ? responseData.message : "Không xoá được danh mục.");
+      return;
+    }
+
     toast.success("Đã xoá danh mục");
     setDeleteId(null);
     fetchData();
@@ -186,10 +209,6 @@ export default function AdminDanhMucPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
-
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Tổng: {items.length}</span>
       </div>
 
       {/* Dialog xoá */}

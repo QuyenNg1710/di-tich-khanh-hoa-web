@@ -2,11 +2,10 @@ import { LuBuilding2 } from "react-icons/lu";
 
 const departments = [
   "Phòng Hành chính - Tổng hợp",
-  "Phòng Nghiệp vụ Bảo tồn di tích",
-  "Phòng Kế hoạch - Tài chính",
+  "Phòng Bảo tồn Di sản Văn hoá",
   "Ban Quản lý di tích Tháp Bà Ponagar",
   "Ban Quản lý danh thắng Hòn Chồng - Hòn Đỏ",
-  "Đội Bảo vệ",
+  "Ban Quản lý di tích Tháp Pô Klong Garai"
 ];
 
 export default function BoMayToChucPage() {

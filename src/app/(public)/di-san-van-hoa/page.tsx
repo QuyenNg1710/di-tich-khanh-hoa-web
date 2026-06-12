@@ -1,11 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import DiTichCard from "@/components/ditich/DiTichCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { HiSearch, HiX } from "react-icons/hi";
 import type { DiTich, DanhMuc, HinhAnh } from "@prisma/client";
 
 type DiTichItem = DiTich & { danhMuc: DanhMuc; hinhAnhs: HinhAnh[] };
@@ -47,12 +49,14 @@ function DiSanVanHoaPage() {
 
   const capDiTich = searchParams.get("cap") || "";
   const danhMucId = searchParams.get("danhMuc") || "";
+  const searchKeyword = searchParams.get("search") || searchParams.get("q") || "";
   const page = Number(searchParams.get("page")) || 1;
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (capDiTich) params.set("capDiTich", capDiTich);
     if (danhMucId) params.set("danhMucId", danhMucId);
+    if (searchKeyword.trim()) params.set("search", searchKeyword.trim());
     params.set("pageIndex", String(page));
     params.set("pageSize", "9");
 
@@ -60,7 +64,7 @@ function DiSanVanHoaPage() {
       .then((res) => res.json())
       .then(setData)
       .finally(() => setLoading(false));
-  }, [capDiTich, danhMucId, page]);
+  }, [capDiTich, danhMucId, searchKeyword, page]);
 
   useEffect(() => {
     fetch("/api/danhmuc").then((r) => r.json()).then(setDanhMucs).catch(() => {});
@@ -85,24 +89,39 @@ function DiSanVanHoaPage() {
   function updateParam(key: string, value: string) {
     setLoading(true);
     const params = new URLSearchParams(searchParams.toString());
+    if (key === "search") params.delete("q");
+    params.delete("khuVuc");
     if (value) {
       params.set(key, value);
     } else {
       params.delete(key);
     }
     params.delete("page");
-    router.push(`/di-san-van-hoa?${params}`);
+    const query = params.toString();
+    router.push(query ? `/di-san-van-hoa?${query}` : "/di-san-van-hoa");
   }
 
   function updateCap(value: string) {
     updateParam("cap", value === "all" ? "" : value);
   }
 
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    updateParam("search", String(formData.get("search") || "").trim());
+  }
+
+  function resetFilters() {
+    setLoading(true);
+    router.push("/di-san-van-hoa");
+  }
+
   function goToPage(p: number) {
     setLoading(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(p));
-    router.push(`/di-san-van-hoa?${params}`);
+    params.delete("khuVuc");
+    router.push(`/di-san-van-hoa?${params.toString()}`);
   }
 
   function getVisiblePages(totalPages: number, currentPage: number) {
@@ -123,6 +142,7 @@ function DiSanVanHoaPage() {
     { value: "CAP_QUOC_GIA", label: "Cấp quốc gia", count: capCounts.CAP_QUOC_GIA },
     { value: "CAP_TINH", label: "Cấp tỉnh", count: capCounts.CAP_TINH },
   ];
+  const hasFilters = Boolean(searchKeyword || danhMucId || capDiTich);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -131,52 +151,81 @@ function DiSanVanHoaPage() {
 
       {/* Filters */}
       <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid w-full grid-cols-1 gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-3 lg:w-[720px]">
-            {capOptions.map((option) => {
-              const active = (capDiTich || "all") === option.value;
+        <div className="space-y-4">
+          <form onSubmit={handleSearch} className="flex flex-col gap-3 md:flex-row">
+            <div className="relative flex-1">
+              <HiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                key={searchKeyword}
+                name="search"
+                defaultValue={searchKeyword}
+                placeholder="Tìm theo tên địa danh, địa chỉ, đơn vị quản lý..."
+                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" className="h-11 rounded-xl px-5">
+                <HiSearch className="mr-1 h-4 w-4" />
+                Tìm kiếm
+              </Button>
+              {hasFilters && (
+                <Button type="button" variant="outline" className="h-11 rounded-xl px-4" onClick={resetFilters}>
+                  <HiX className="mr-1 h-4 w-4" />
+                  Đặt lại
+                </Button>
+              )}
+            </div>
+          </form>
 
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => updateCap(option.value)}
-                  className={`flex h-12 items-center justify-between gap-3 rounded-lg px-4 text-left transition-all ${
-                    active
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-transparent text-slate-600 hover:bg-white hover:text-slate-900"
-                  }`}
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="grid w-full grid-cols-1 gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-3 xl:w-[640px]">
+              {capOptions.map((option) => {
+                const active = (capDiTich || "all") === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateCap(option.value)}
+                    className={`flex h-12 items-center justify-between gap-3 rounded-lg px-4 text-left transition-all ${
+                      active
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "bg-transparent text-slate-600 hover:bg-white hover:text-slate-900"
+                    }`}
+                  >
+                    <span>
+                      <span className="block text-sm font-bold">{option.label}</span>
+                    </span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${active ? "bg-white text-teal-700" : "bg-white text-slate-700"}`}>
+                      {option.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-full xl:w-72">
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase text-slate-500">Lọc theo danh mục</label>
+                <Select
+                  value={danhMucId || "all"}
+                  onValueChange={(v) => updateParam("danhMuc", !v || v === "all" ? "" : v)}
+                  items={Object.fromEntries([["all", "Tất cả danh mục"], ...danhMucs.map((dm) => [String(dm.id), `${dm.tenDanhMuc} (${dm._count.diTichs})`])])}
                 >
-                  <span>
-                    <span className="block text-sm font-bold">{option.label}</span>
-                  </span>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${active ? "bg-white text-teal-700" : "bg-white text-slate-700"}`}>
-                    {option.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="w-full lg:w-72">
-            <label className="mb-2 block text-xs font-semibold uppercase text-slate-500">Lọc theo danh mục</label>
-            <Select
-              value={danhMucId || "all"}
-              onValueChange={(v) => updateParam("danhMuc", !v || v === "all" ? "" : v)}
-              items={Object.fromEntries([["all", "Tất cả danh mục"], ...danhMucs.map((dm) => [String(dm.id), `${dm.tenDanhMuc} (${dm._count.diTichs})`])])}
-            >
-              <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50">
-                <SelectValue placeholder="Danh mục" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả danh mục</SelectItem>
-                {danhMucs.map((dm) => (
-                  <SelectItem key={dm.id} value={String(dm.id)}>
-                    {dm.tenDanhMuc} ({dm._count.diTichs})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50">
+                    <SelectValue placeholder="Danh mục" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả danh mục</SelectItem>
+                    {danhMucs.map((dm) => (
+                      <SelectItem key={dm.id} value={String(dm.id)}>
+                        {dm.tenDanhMuc} ({dm._count.diTichs})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </div>
       </div>

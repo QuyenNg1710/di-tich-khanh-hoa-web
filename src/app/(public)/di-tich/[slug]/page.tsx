@@ -303,7 +303,7 @@ export default async function DiTichDetailPage({
                     <BookOpen className="size-4" />
                   </span>
                   <div>
-                    <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Danh mục</span>
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Loại hình</span>
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{diTich.danhMuc.tenDanhMuc}</span>
                   </div>
                 </div>

@@ -17,6 +17,32 @@ const khuVucAliases: Record<string, string[]> = {
   "Trường Sa": ["Trường Sa", "Truong Sa"],
 };
 
+function normalizeVietnamese(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
+function getKhuVucTermsFromSearch(search: string) {
+  const normalizedSearch = normalizeVietnamese(search);
+  if (!normalizedSearch) return [];
+
+  for (const aliases of Object.values(khuVucAliases)) {
+    const normalizedAliases = aliases.map(normalizeVietnamese);
+    const isKhuVucSearch = normalizedAliases.some(
+      (alias) => normalizedSearch === alias || normalizedSearch.includes(alias)
+    );
+
+    if (isKhuVucSearch) return aliases;
+  }
+
+  return [];
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") || "";
@@ -30,16 +56,21 @@ export async function GET(request: NextRequest) {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const khuVucTerms = khuVuc && khuVuc !== "all" ? khuVucAliases[khuVuc] || [khuVuc] : [];
+  const searchKhuVucTerms = getKhuVucTermsFromSearch(search);
   const filters: Prisma.DiTichWhereInput[] = [];
 
-  if (search) {
+  if (searchKhuVucTerms.length > 0) {
+    filters.push({
+      OR: searchKhuVucTerms.map((term) => ({ diaChi: { contains: term, mode: "insensitive" as const } })),
+    });
+  } else if (search) {
     filters.push({
       OR: [
         { tenDiTich: { contains: search, mode: "insensitive" as const } },
         { diaChi: { contains: search, mode: "insensitive" as const } },
         { donViQuanLy: { contains: search, mode: "insensitive" as const } },
         { donViQuanLyInfo: { is: { tenDonVi: { contains: search, mode: "insensitive" as const } } } },
-        { moTa: { contains: search, mode: "insensitive" as const } },
+        { danhMuc: { is: { tenDanhMuc: { contains: search, mode: "insensitive" as const } } } },
       ],
     });
   }

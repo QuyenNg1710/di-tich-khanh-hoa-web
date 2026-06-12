@@ -28,12 +28,19 @@ const diaDanh = [
   { name: "Trường Sa", aliases: ["Trường Sa", "Truong Sa"] },
 ];
 
+const homeHeroSlides = [
+  { sourceName: "Tháp Bà Ponagar", title: "Tháp Bà Ponagar Nha Trang" },
+  { sourceName: "Hòn Chồng - Hòn Vợ", title: "Danh Thắng Hòn Chồng - Hòn Đỏ" },
+  { sourceName: "Am Chúa", title: "Di tích lịch sử Am Chúa" },
+];
+
 export default async function HomePage() {
   const [heroItems, quocGia, gridItems, tongDiTich, tongBaiViet, danhMucs, mapItems] = await Promise.all([
     prisma.diTich.findMany({
-      where: { trangThai: true },
-      orderBy: { luotXem: "desc" },
-      take: 5,
+      where: {
+        trangThai: true,
+        tenDiTich: { in: homeHeroSlides.map((slide) => slide.sourceName) },
+      },
       include: { hinhAnhs: { take: 1, orderBy: { thuTu: "asc" } } },
     }),
     prisma.diTich.findMany({
@@ -73,11 +80,19 @@ export default async function HomePage() {
     _sum: { luotXem: true },
   });
 
-  const heroSlides = (heroItems.length > 0 ? heroItems : quocGia).map((item) => ({
-    id: item.id,
-    title: item.tenDiTich,
-    imageUrl: item.hinhAnhs?.[0]?.url || item.hinhAnhDaiDien,
-  }));
+  const heroSlides = homeHeroSlides
+    .map((slide) => {
+      const item = heroItems.find((heroItem) => heroItem.tenDiTich === slide.sourceName);
+
+      if (!item) return null;
+
+      return {
+        id: item.id,
+        title: slide.title,
+        imageUrl: item.hinhAnhs?.[0]?.url || item.hinhAnhDaiDien,
+      };
+    })
+    .filter((slide): slide is NonNullable<typeof slide> => Boolean(slide));
   const displayGridItems = gridItems.length > 0 ? gridItems : quocGia;
 
   const mapData = mapItems.map((item) => ({

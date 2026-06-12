@@ -37,7 +37,7 @@ export default function DonViQuanLyPage() {
 
   async function fetchData() {
     setLoading(true);
-    const params = new URLSearchParams({ includeHidden: "true" });
+    const params = new URLSearchParams();
     if (search) params.set("search", search);
     const res = await fetch(`/api/don-vi-quan-ly?${params}`);
     const data = await res.json();

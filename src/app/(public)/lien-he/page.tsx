@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { FaFacebookF, FaYoutube, FaTwitter } from "react-icons/fa";
 import { LuCheck, LuMail, LuMapPin, LuPhone, LuX } from "react-icons/lu";
@@ -7,6 +8,7 @@ import { LuCheck, LuMail, LuMapPin, LuPhone, LuX } from "react-icons/lu";
 export default function LienHePage() {
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -68,7 +70,7 @@ export default function LienHePage() {
     setMessage("");
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const validationMessage = validateForm();
 
     if (validationMessage) {
@@ -83,8 +85,35 @@ export default function LienHePage() {
       return;
     }
 
-    setSent(true);
+    setSending(true);
+    setSent(false);
     setMessage("");
+
+    try {
+      const response = await fetch("/api/lien-he", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const responseData = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          typeof responseData?.message === "string"
+            ? responseData.message
+            : "Không gửi được email. Vui lòng thử lại sau."
+        );
+      }
+
+      setSent(true);
+      setVerified(false);
+      setFormData({ name: "", email: "", phone: "", content: "" });
+    } catch (error) {
+      setSent(false);
+      setMessage(error instanceof Error ? error.message : "Không gửi được email. Vui lòng thử lại sau.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -162,7 +191,13 @@ export default function LienHePage() {
         <div>
           <h2 className="text-lg font-bold text-slate-900 font-heading">Gửi email cho chúng tôi</h2>
 
-          <form className="mt-5 space-y-4">
+          <form
+            className="mt-5 space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSubmit();
+            }}
+          >
             <input
               type="text"
               value={formData.name}
@@ -211,21 +246,29 @@ export default function LienHePage() {
                     <LuCheck className="h-4 w-4 text-white" />
                   </span>
                   <span className="text-xs leading-4 text-slate-700">Tôi không phải là người máy</span>
-                  <div className="ml-auto text-right text-[10px] leading-3 text-slate-400">
-                    reCAPTCHA
-                    <br />
-                    Bảo mật - Điều khoản
+                  <div className="ml-auto flex w-[72px] flex-col items-center text-center text-[9px] leading-3 text-slate-500">
+                    <span className="mb-1 flex h-8 w-8 items-center justify-center">
+                      <Image
+                        src="/recaptcha-logo.png"
+                        alt=""
+                        width={32}
+                        height={32}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className="font-medium text-slate-600">reCAPTCHA</span>
+                    <span className="text-[8px] text-slate-400">Bảo mật - Điều khoản</span>
                   </div>
                 </button>
                 {message && <p className="mt-2 max-w-xs text-sm text-red-500">{message}</p>}
               </div>
 
               <button
-                type="button"
-                onClick={handleSubmit}
-                className="h-11 rounded-sm bg-amber-500 px-9 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
+                type="submit"
+                disabled={sending}
+                className="h-11 rounded-sm bg-amber-500 px-9 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Gửi ngay
+                {sending ? "Đang gửi..." : "Gửi ngay"}
               </button>
             </div>
           </form>
