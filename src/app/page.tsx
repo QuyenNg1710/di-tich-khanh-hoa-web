@@ -22,10 +22,10 @@ const diaDanh = [
   { name: "Ninh Hòa", aliases: ["Ninh Hòa", "TX. Ninh Hòa", "Thị xã Ninh Hòa", "Ninh Hoà"], count: 18 },
   { name: "Diên Khánh", aliases: ["Diên Khánh", "Diên Khanh"], count: 17 },
   { name: "Cam Lâm", aliases: ["Cam Lâm", "Cam Lam"], count: 3 },
-  { name: "Khánh Vĩnh", aliases: ["Khánh Vĩnh", "Khanh Vinh"] },
-  { name: "Khánh Sơn", aliases: ["Khánh Sơn", "Khanh Son"] },
-  { name: "Vạn Ninh", aliases: ["Vạn Ninh", "Van Ninh"], count: 4 },
-  { name: "Trường Sa", aliases: ["Trường Sa", "Truong Sa"] },
+  { name: "Khánh Vĩnh", aliases: ["Khánh Vĩnh", "Khanh Vinh"], count: 0 },
+  { name: "Khánh Sơn", aliases: ["Khánh Sơn", "Khanh Son"], count: 0 },
+  { name: "Vạn Ninh", aliases: ["Vạn Ninh", "Van Ninh"], count: 0 },
+  { name: "Trường Sa", aliases: ["Trường Sa", "Truong Sa"], count:0 },
 ];
 
 const homeHeroSlides = [
