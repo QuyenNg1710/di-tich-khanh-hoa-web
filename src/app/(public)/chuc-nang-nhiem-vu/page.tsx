@@ -24,7 +24,7 @@ export default function ChucNangNhiemVuPage() {
         </span>
 
         <h1 className="mt-4 text-3xl font-extrabold text-slate-900 font-heading">
-          Chức năng và nhiệm vụ của Trung tâm Bảo tồn di sản văn hóa tỉnh Khánh Hòa
+          Chức năng và nhiệm vụ của Trung tâm Bảo tồn Di sản Văn hóa tỉnh Khánh Hòa
         </h1>
 
         <div className="mt-6 space-y-8 text-slate-700">
@@ -32,12 +32,12 @@ export default function ChucNangNhiemVuPage() {
             <h2 className="text-xl font-bold text-slate-900 font-heading">1. Vị trí và chức năng</h2>
             <div className="mt-3 space-y-3 text-base leading-7">
               <p>
-                Trung tâm Bảo tồn di sản văn hóa tỉnh Khánh Hòa là đơn vị sự nghiệp công lập trực thuộc Sở Văn hóa,
+                Trung tâm Bảo tồn Di sản Văn hóa tỉnh Khánh Hòa là đơn vị sự nghiệp công lập trực thuộc Sở Văn hóa,
                 Thể thao và Du lịch tỉnh Khánh Hòa; có chức năng tổ chức các hoạt động bảo tồn và phát huy giá trị di
                 sản văn hóa trên địa bàn tỉnh.
               </p>
               <p>
-                Trung tâm Bảo tồn di sản văn hóa tỉnh Khánh Hòa có tư cách pháp nhân, có trụ sở, con dấu và tài khoản
+                Trung tâm Bảo tồn Di sản Văn hóa tỉnh Khánh Hòa có tư cách pháp nhân, có trụ sở, con dấu và tài khoản
                 riêng theo quy định của pháp luật.
               </p>
             </div>

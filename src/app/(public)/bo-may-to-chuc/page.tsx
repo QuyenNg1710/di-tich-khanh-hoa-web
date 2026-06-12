@@ -4,8 +4,8 @@ const departments = [
   "Phòng Hành chính - Tổng hợp",
   "Phòng Bảo tồn Di sản Văn hoá",
   "Ban Quản lý di tích Tháp Bà Ponagar",
-  "Ban Quản lý danh thắng Hòn Chồng - Hòn Đỏ",
-  "Ban Quản lý di tích Tháp Pô Klong Garai"
+  "Ban Quản lý di tích Tháp Pô Klong Garai",
+  "Ban Quản lý danh thắng Hòn Chồng - Hòn Đỏ"
 ];
 
 export default function BoMayToChucPage() {
@@ -18,13 +18,13 @@ export default function BoMayToChucPage() {
         </span>
 
         <h1 className="mt-4 text-3xl font-extrabold text-slate-900 font-heading">
-          Bộ máy tổ chức Trung tâm bảo tồn di sản văn hoá
+          Bộ máy tổ chức Trung tâm Bảo tồn Di sản Văn hoá
         </h1>
 
         <div className="mt-6 space-y-8 text-slate-700">
           <div>
             <p className="text-base leading-7">
-              Bộ máy tổ chức của Trung tâm bảo tồn di sản văn hoá gồm:
+              Bộ máy tổ chức của Trung tâm Bảo tồn Di sản Văn hoá gồm:
             </p>
           </div>
 
