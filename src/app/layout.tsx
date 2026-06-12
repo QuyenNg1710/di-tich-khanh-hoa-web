@@ -28,6 +28,23 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  openGraph: {
+    title: "Di Tích Khánh Hòa - Quản lí và quảng bá di tích tỉnh Khánh Hòa",
+    description:
+      "Website quản lí và quảng bá các di tích cấp tỉnh và cấp quốc gia trên địa bàn tỉnh Khánh Hòa",
+    url: "https://di-tich-khanh-hoa-web.vercel.app/",
+    siteName: "Di Tích Khánh Hòa",
+    locale: "vi_VN",
+    type: "website",
+    images: [
+      {
+        url: "/favicon.png",
+        width: 800,
+        height: 600,
+        alt: "Di Tích Khánh Hòa",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -40,7 +57,10 @@ export default function RootLayout({
       lang="vi"
       className={`${inter.variable} ${beVietnamPro.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#f7f9fb]" suppressHydrationWarning>
+      <body
+        className="min-h-full flex flex-col bg-[#f7f9fb]"
+        suppressHydrationWarning
+      >
         <TooltipProvider>
           {children}
           <FloatingChatbot />
